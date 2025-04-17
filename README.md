@@ -1,0 +1,1 @@
+# WARNING: To be able to run this app, you need a SSL certificate on your 3DS.
