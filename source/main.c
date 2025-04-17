@@ -7,7 +7,8 @@
 
 #include <malloc.h>
 #include <sys/select.h>
-#include <curl/curl.h>
+
+#include "bluesky/bluesky.h"
 
 enum ConsoleMode {
     OFF,
@@ -44,8 +45,6 @@ int main() {
     }
 
 	Clay_Citro2d_Init();
-
-    curl_global_init(CURL_GLOBAL_ALL);
 
     C3D_RenderTarget* top = NULL;
     C3D_RenderTarget* bottom = NULL;
@@ -185,13 +184,14 @@ int main() {
 		C3D_FrameEnd(0);
     }
 
+    bs_client_free();
+
     C2D_FontFree(fonts[0]);
     C2D_FontFree(fonts[1]);
     C2D_FontFree(fonts[2]);
     
     Clay_Citro2d_Deinit();
 
-    curl_global_cleanup();
 	romfsExit();
 	cfguExit();
     socExit();

@@ -12,6 +12,7 @@ typedef struct {
     char* textToEdit;          /**< Ponteiro para o texto a ser editado */
     bool isPassword;           /**< Se o campo é para senha (exibe asteriscos) */
     int maxLength;             /**< Comprimento máximo do texto */
+    bool disable;              /**< Se o campo está desabilitado */
 } TextEditData;
 
 /**

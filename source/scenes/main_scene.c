@@ -1,26 +1,14 @@
 #include "scenes/main_scene.h"
 #include <stdio.h>
 #include "clay/clay.h"
-#include <string.h>
+
+#include "bluesky/bluesky.h"
 
 static Scene main_scene;
-static MainSceneData main_data;
-
-void set_main_scene_tokens(const char* access_token, const char* refresh_token) {
-    strncpy(main_data.access_token, access_token, sizeof(main_data.access_token) - 1);
-    strncpy(main_data.refresh_token, refresh_token, sizeof(main_data.refresh_token) - 1);
-    main_data.access_token[sizeof(main_data.access_token) - 1] = '\0';
-    main_data.refresh_token[sizeof(main_data.refresh_token) - 1] = '\0';
-}
-
-MainSceneData* get_main_scene_data(void) {
-    return &main_data;
-}
 
 static void main_init() {
     printf("Hello from main scene\n");
-    printf("Access g Token: %s\n", main_data.access_token);
-    printf("Refresh g Token: %s\n", main_data.refresh_token);
+    
 }
 
 static void main_update(void) {

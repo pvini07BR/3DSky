@@ -31,6 +31,12 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
+
+ICON := gfx/3dsky-icon.png
+APP_TITLE := 3DSky
+APP_DESCRIPTION := An BlueSky client for the Nintendo 3DS
+APP_AUTHOR := pvini07BR
+
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source source/scenes source/components

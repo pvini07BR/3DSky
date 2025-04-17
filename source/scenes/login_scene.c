@@ -16,26 +16,30 @@
 
 #include <jansson.h>
 
+#include "bluesky/bluesky.h"
+
 static Scene login_scene;
 
 bool logging_in = false;
 bool login_successful = false;
 
-char username[80];
-char password[80];
+static char username[80];
+static char password[80];
 
 TextEditData handleData = { 
     .hintText = CLAY_STRING("Enter your username handle"), 
     .textToEdit = username, 
     .isPassword = false,
-    .maxLength = 80
+    .maxLength = 80,
+    .disable = false
 };
 
 TextEditData passwordData = { 
     .hintText = CLAY_STRING("Enter your password"), 
     .textToEdit = password, 
     .isPassword = true,
-    .maxLength = 80
+    .maxLength = 80,
+    .disable = false
 };
 
 Thread threadHandle;
@@ -53,10 +57,11 @@ void on_login_button_pressed() {
     }
 
     logging_in = true;
-
+    
     svcSignalEvent(threadRequest);
 }
 
+/*
 size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 {
     if (buffer == NULL || size == 0 || nmemb == 0) {
@@ -116,12 +121,24 @@ size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
     free(local_buffer);
     return size * nmemb;
 }
+*/
 
 void threadMain(void *arg) {
 	while(runThread) {
 		svcWaitSynchronization(threadRequest, U64_MAX);
 		svcClearEvent(threadRequest);
 
+        char error_msg[256];
+        int code = bs_client_init(username, password, error_msg);
+        if (code != 0) {
+            show_popup_message(error_msg, NULL);
+            logging_in = false;
+        } else {
+            login_successful = true;
+        }
+
+
+        /*
         size_t buffer_size = strlen("{ \"identifier\":\"") + strlen(username) + 
                            strlen("\", \"password\":\"") + strlen(password) + 
                            strlen("\" }") + 1;
@@ -183,6 +200,7 @@ void threadMain(void *arg) {
             
             free(errorBuffer);
         }
+        */
     }
 }
 
@@ -227,6 +245,9 @@ static void menu_layout_bottom(void) {
 }
 
 static void menu_update(void) {
+    handleData.disable = logging_in || is_popup_visible() || login_successful;
+    passwordData.disable = logging_in || is_popup_visible() || login_successful;
+
     if (login_successful) {
         login_successful = false;
         change_scene(get_main_scene());

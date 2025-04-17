@@ -7,6 +7,9 @@
 
 void HandleTextEditInteraction(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     TextEditData* data = (TextEditData*)userData;
+    if (data->disable) {
+        return;
+    }
 
     if (pointerInfo.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
         SwkbdState swkbd;
