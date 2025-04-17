@@ -3,10 +3,9 @@
 #include "clay/clay_renderer_citro2d.h"
 #include "defines.h"
 #include "scenes/scene.h"
-#include "scenes/login_scene.h"
 
 #include <malloc.h>
-#include <sys/select.h>
+#include "scenes/login_scene.h"
 
 #include "bluesky/bluesky.h"
 
@@ -16,7 +15,7 @@ enum ConsoleMode {
     BOTTOM
 };
 
-enum ConsoleMode consoleMode = TOP;
+enum ConsoleMode consoleMode = OFF;
 
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s\n", errorData.errorText.chars);
@@ -24,9 +23,7 @@ void HandleClayErrors(Clay_ErrorData errorData) {
 
 int main() {
     romfsInit();
-	cfguInit();
 
-    // Initialize SOC
     Result ret = 0;
     u32 soc_sharedmem_size = 0x100000;
     u32 *soc_sharedmem = (u32*)memalign(0x1000, soc_sharedmem_size);
@@ -60,15 +57,12 @@ int main() {
         bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     }
 
-    C2D_Font fonts[3];
+    C2D_Font fonts[2];
     fonts[0] = C2D_FontLoadSystem(CFG_REGION_USA);
     fonts[1] = C2D_FontLoad("romfs:/segoeui.bcfnt");
 
     C2D_FontSetFilter(fonts[0], GPU_LINEAR, GPU_LINEAR);
     C2D_FontSetFilter(fonts[1], GPU_LINEAR, GPU_LINEAR);
-
-    //C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/logo.t3x");
-    //C2D_Image logo = C2D_SpriteSheetGetImage(spriteSheet, 0);
 
     uint64_t totalMemorySize = Clay_MinMemorySize();
     Clay_Arena arena = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, malloc(totalMemorySize));
@@ -76,9 +70,9 @@ int main() {
     Clay_Initialize(arena, (Clay_Dimensions) { TOP_WIDTH, TOP_HEIGHT + BOTTOM_HEIGHT }, (Clay_ErrorHandler) { HandleClayErrors });
     Clay_SetMeasureTextFunction(MeasureText, &fonts);
 
-    Clay_Color bgColor = (Clay_Color) {22, 30, 39, 255};
-
     change_scene(get_login_scene());
+
+    Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
 
     while(aptMainLoop()) {
         hidScanInput();
@@ -88,17 +82,6 @@ int main() {
 
 		if (kDown & KEY_START)
 			break;
-        
-        /*
-        if (kDown & KEY_A) {
-            Scene* current = get_current_scene();
-            if (current == get_menu_scene()) {
-                change_scene(get_game_scene());
-            } else {
-                change_scene(get_menu_scene());
-            }
-        }
-        */
 
         touchPosition touch = {-1};
         hidTouchRead(&touch);
@@ -108,72 +91,43 @@ int main() {
             float touch_y = touch.py + TOP_HEIGHT;
 
             Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, kHeld & KEY_TOUCH);
+            if (lastTouchPos.x != -1.0f && lastTouchPos.y != -1.0f) {
+                Clay_Vector2 scrollDelta = (Clay_Vector2) {touch_x - lastTouchPos.x, touch_y - lastTouchPos.y};
+                Clay_UpdateScrollContainers(true, scrollDelta, 1.0 / 60.0f);
+                lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
+            } else {
+                lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
+                Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, 1.0 / 60.0f);
+            }
         } else {
             Clay_SetPointerState((Clay_Vector2) {-100.0f, -100.0f}, false);
+            Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, 1.0 / 60.0f);
+            lastTouchPos = (Clay_Vector2) {-1.0f, -1.0f};
         }
-
-        Clay_BeginLayout();
-
-        CLAY({
-            .id = CLAY_ID("all"),
-            .layout = {
-                .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
-                .layoutDirection = CLAY_TOP_TO_BOTTOM
-            },
-        }) {
-            CLAY({
-                .id = CLAY_ID("top"),
-                .layout = {
-                    .sizing = {CLAY_SIZING_FIXED(TOP_WIDTH), CLAY_SIZING_FIXED(TOP_HEIGHT)},
-                },
-                .backgroundColor = bgColor
-            }) {
-                Scene* current = get_current_scene();
-                if (current != NULL) {
-                    current->layout_top();
-                }
-                //CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 1 }));
-            }
-
-            CLAY({
-                .id = CLAY_ID("bottom"),
-                .layout = {
-                    .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH + TOP_BOTTOM_DIFF), CLAY_SIZING_FIXED(BOTTOM_HEIGHT)},
-                    .padding = {.left = TOP_BOTTOM_DIFF },
-                },
-                .backgroundColor = bgColor
-            }) {
-                Scene* current = get_current_scene();
-                if (current != NULL) {
-                    current->layout_bottom();
-                }
-                /*
-                CLAY_TEXT(CLAY_STRING("Clay - UI Library"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 1 }));
-                CLAY({ .backgroundColor = Clay_Hovered() ? (Clay_Color) {255, 0, 0, 255} : (Clay_Color) {0, 255, 0, 255} }) {
-                    CLAY({ .id = CLAY_ID("ProfilePicture"), .layout = { .sizing = { .width = CLAY_SIZING_FIXED(60), .height = CLAY_SIZING_FIXED(60) }}, .image = { .imageData = &logo, .sourceDimensions = {60, 60} } }) {}
-                    CLAY_TEXT(CLAY_STRING("Button"), CLAY_TEXT_CONFIG({ .fontSize = 24, .textColor = {255, 255, 255, 255} }));
-                }
-                */
-            }
-        }
-
-        Clay_RenderCommandArray renderCommands = Clay_EndLayout();
 
         Scene* current = get_current_scene();
         if (current != NULL) {
             current->update();
         }
 
+        Clay_BeginLayout();
+
+        if (current != NULL) {
+            current->layout();
+        }
+
+        Clay_RenderCommandArray renderCommands = Clay_EndLayout();
+
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         if (top != NULL) {
-            C2D_TargetClear(top, C2D_Color32(0, 0, 0, 255));
+            C2D_TargetClear(top, C2D_Color32(22, 30, 39, 255));
             C2D_SceneBegin(top);
 
             Clay_Citro2d_Render(&renderCommands, fonts);
         }
 
         if (bottom != NULL) {
-            C2D_TargetClear(bottom, C2D_Color32(0, 0, 0, 255));
+            C2D_TargetClear(bottom, C2D_Color32(22, 30, 39, 255));
             C2D_SceneBegin(bottom);
 
             C2D_ViewTranslate(-(TOP_WIDTH - BOTTOM_WIDTH) / 2.0f, -TOP_HEIGHT);
@@ -184,16 +138,20 @@ int main() {
 		C3D_FrameEnd(0);
     }
 
-    bs_client_free();
+    Scene* current = get_current_scene();
+    if (current != NULL) {
+        current->unload();
+    }
 
     C2D_FontFree(fonts[0]);
     C2D_FontFree(fonts[1]);
-    C2D_FontFree(fonts[2]);
-    
+
     Clay_Citro2d_Deinit();
 
+    bs_client_free();
+
 	romfsExit();
-	cfguExit();
     socExit();
+
     return 0;
 }

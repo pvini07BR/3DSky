@@ -17,5 +17,8 @@ You can send it into your Nintendo 3DS by opening Homebrew Launcher, pressing Y,
 
 # Credits
 
-This project uses cURL and Jansson libraries, adapted for the 3DS, provided by dkp-pacman (devkitPro)
-And also [libbluesky](https://github.com/briandowns/libbluesky) made by briandowns
+Libraries used:
+- [curl](https://github.com/curl/curl)
+- [Clay](https://github.com/nicbarker/clay)
+- [Jansson](https://github.com/akheron/jansson)
+- [libbluesky](https://github.com/briandowns/libbluesky)

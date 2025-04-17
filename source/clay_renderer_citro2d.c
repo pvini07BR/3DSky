@@ -119,4 +119,5 @@ void Clay_Citro2d_Deinit(void) {
     if (textBuf) C2D_TextBufDelete(textBuf);
     C2D_Fini();
     C3D_Fini();
+    gfxExit();
 }

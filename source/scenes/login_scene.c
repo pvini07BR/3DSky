@@ -197,54 +197,75 @@ void threadMain(void *arg) {
             snprintf(errorBuffer, buffer_size, "Error when trying to login: %s", curl_easy_strerror(ret));
             show_popup_message(errorBuffer, NULL);
             logging_in = false;
-            
+                CLAY({
+            .layout = {
+                .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                .childAlignment = {
+                    .x = CLAY_ALIGN_X_CENTER,
+                    .y = CLAY_ALIGN_Y_CENTER
+                },
+                .childGap = BOTTOM_HEIGHT / 6
+            },
+        }) {
+            textedit_component(CLAY_STRING("handle"), &handleData);
+            textedit_component(CLAY_STRING("password"), &passwordData);
+            if (!logging_in) {
+                button_component(CLAY_STRING("login"), CLAY_STRING("Login"), logging_in || is_popup_visible() || login_successful, on_login_button_pressed);
+            } else {
+                button_component(CLAY_STRING("login"), CLAY_STRING("Logging in..."), logging_in, NULL);
+            }
+
+            if (is_popup_visible()) {
+                render_current_popup();
+            }
+        }
             free(errorBuffer);
         }
         */
     }
 }
 
-static void menu_init(void) {
+static void login_init(void) {
     printf("Hello from login scene\n");
 
     svcCreateEvent(&threadRequest,0);
 	threadHandle = threadCreate(threadMain, 0, (16 * 1024), 0x3f, -2, true);
 }
 
-static void menu_layout_top(void) {
-    if (is_popup_visible()) {
-        popup_overlay();
-    }
-}
-
-static void menu_layout_bottom(void) {
+static void login_layout(void) {
     CLAY({
-        .id = CLAY_ID("this"),
         .layout = {
             .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
-            .childAlignment = {
-                .x = CLAY_ALIGN_X_CENTER,
-                .y = CLAY_ALIGN_Y_CENTER
-            },
-            .childGap = BOTTOM_HEIGHT / 6
+            .padding = { .top = TOP_HEIGHT }
         },
     }) {
-        textedit_component(CLAY_STRING("handle"), &handleData);
-        textedit_component(CLAY_STRING("password"), &passwordData);
-        if (!logging_in) {
-            button_component(CLAY_STRING("login"), CLAY_STRING("Login"), logging_in || is_popup_visible() || login_successful, on_login_button_pressed);
-        } else {
-            button_component(CLAY_STRING("login"), CLAY_STRING("Logging in..."), logging_in, NULL);
-        }
-
-        if (is_popup_visible()) {
-            render_current_popup();
+        CLAY({
+            .layout = {
+                .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                .childAlignment = {
+                    .x = CLAY_ALIGN_X_CENTER,
+                    .y = CLAY_ALIGN_Y_CENTER
+                },
+                .childGap = BOTTOM_HEIGHT / 6
+            },
+        }) {
+            textedit_component(CLAY_STRING("handle"), &handleData);
+            textedit_component(CLAY_STRING("password"), &passwordData);
+            if (!logging_in) {
+                button_component(CLAY_STRING("login"), CLAY_STRING("Login"), logging_in || is_popup_visible() || login_successful, on_login_button_pressed);
+            } else {
+                button_component(CLAY_STRING("login"), CLAY_STRING("Logging in..."), logging_in, NULL);
+            }
         }
     }
+
+    render_current_popup(true);
 }
 
-static void menu_update(void) {
+static void login_update(void) {
     handleData.disable = logging_in || is_popup_visible() || login_successful;
     passwordData.disable = logging_in || is_popup_visible() || login_successful;
 
@@ -257,7 +278,7 @@ static void menu_update(void) {
     check_popup_close_button();
 }
 
-static void menu_unload(void) {
+static void login_unload(void) {
     printf("Bye from login scene\n");
 
     if (login_successful) {
@@ -275,11 +296,10 @@ static void menu_unload(void) {
 }
 
 Scene* get_login_scene(void) {
-    login_scene.init = menu_init;
-    login_scene.update = menu_update;
-    login_scene.layout_top = menu_layout_top;
-    login_scene.layout_bottom = menu_layout_bottom;
-    login_scene.unload = menu_unload;
+    login_scene.init = login_init;
+    login_scene.update = login_update;
+    login_scene.layout = login_layout;
+    login_scene.unload = login_unload;
     
     return &login_scene;
 }

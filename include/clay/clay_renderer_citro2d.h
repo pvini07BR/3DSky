@@ -3,7 +3,6 @@
 #define CLAY_RENDERER_CITRO2D_H
 
 #include <citro2d.h>
-#include "c2d/font.h"
 #include "clay/clay.h"
 
 #define GLYPH_BUFFER_SIZE   4096

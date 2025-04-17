@@ -7,8 +7,7 @@ typedef struct {
     void (*init)(void);
     void (*update)(void);
 
-    void (*layout_top)(void);
-    void (*layout_bottom)(void);
+    void (*layout)(void);
 
     void (*unload)(void);
 } Scene;

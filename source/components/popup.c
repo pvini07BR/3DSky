@@ -11,40 +11,18 @@ static size_t popup_message_length = 0;
 static bool show_popup_flag = false;
 static void (*popup_on_close)(void) = NULL;
 
-void popup_component(Clay_String text) {
+void popup_component(Clay_String text, bool bottomScreen) {
     CLAY({
-        .id = CLAY_ID("popup"),
         .layout = {
-            .padding = CLAY_PADDING_ALL(10),
-            .layoutDirection = CLAY_TOP_TO_BOTTOM,
-            .sizing = {
-                .width = CLAY_SIZING_GROW(.max = TOP_WIDTH / 1.5f)
+            .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
+            .padding = {
+                .top = bottomScreen ? TOP_HEIGHT : 0,
+                .bottom = bottomScreen ? 0 : BOTTOM_HEIGHT
             },
             .childAlignment = {
                 .x = CLAY_ALIGN_X_CENTER,
                 .y = CLAY_ALIGN_Y_CENTER
-            },
-            .childGap = 10
-        },
-        .floating = {
-            .attachTo = CLAY_ATTACH_TO_PARENT,
-            .attachPoints = {
-                .element = CLAY_ATTACH_POINT_CENTER_CENTER,
-                .parent = CLAY_ATTACH_POINT_CENTER_CENTER
             }
-        },
-        .cornerRadius = {.topLeft = 8 },
-        .backgroundColor = {30, 41, 53, 255}
-    }) {
-        CLAY_TEXT(text, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 16, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
-        button_component(CLAY_STRING("closePopup"), CLAY_STRING("Ok"), false, NULL);
-    }
-}
-
-void popup_overlay(void) {
-    CLAY({
-        .layout = {
-            .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
         },
         .floating = {
             .attachTo = CLAY_ATTACH_TO_PARENT,
@@ -54,7 +32,28 @@ void popup_overlay(void) {
             }
         },
         .backgroundColor = {0, 0, 0, 128}
-    });
+    }) {
+        CLAY({
+            .id = CLAY_ID("popup"),
+            .layout = {
+                .padding = CLAY_PADDING_ALL(10),
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                .sizing = {
+                    .width = CLAY_SIZING_GROW(.max = TOP_WIDTH / 1.5f)
+                },
+                .childAlignment = {
+                    .x = CLAY_ALIGN_X_CENTER,
+                    .y = CLAY_ALIGN_Y_CENTER
+                },
+                .childGap = 10
+            },
+            .cornerRadius = {.topLeft = 8 },
+            .backgroundColor = {30, 41, 53, 255}
+        }) {
+            CLAY_TEXT(text, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 16, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+            button_component(CLAY_STRING("closePopup"), CLAY_STRING("Ok"), false, NULL);
+        }
+    }
 }
 
 void show_popup_message(const char* message, void (*onClose)(void)) {
@@ -92,10 +91,9 @@ bool check_popup_close_button(void) {
 }
 
 // Função para renderizar o popup atual
-void render_current_popup(void) {
+void render_current_popup(bool bottomScreen) {
     if (show_popup_flag) {
-        popup_overlay();
         Clay_String popup_text = { .length = popup_message_length, .chars = popup_message_text };
-        popup_component(popup_text);
+        popup_component(popup_text, bottomScreen);
     }
 } 
