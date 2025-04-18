@@ -66,6 +66,9 @@ static void main_layout(void) {
             }
         }
 
+        Clay_LayoutConfig iconLayout = { .sizing = { .width = CLAY_SIZING_FIXED(32), .height = CLAY_SIZING_FIXED(32) }};
+        Clay_Dimensions iconDimensions = { .width = 32, .height = 32 };
+
         CLAY({
             .layout = {
                 .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_FIXED(40)},
@@ -74,49 +77,50 @@ static void main_layout(void) {
                     .x = CLAY_ALIGN_X_CENTER,
                     .y = CLAY_ALIGN_Y_CENTER
                 },
+                .childGap = 32,
                 .padding = {.left = 5, .right = 10}
             },
             .border = {.width = {.top= 1 }, .color = {46, 64, 82, 255}},
             .backgroundColor = {22, 30, 39, 255}
         }) {
             CLAY({
-                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .layout = iconLayout,
                 .image = {
                     .imageData = &homeImage,
-                    .sourceDimensions = {2.5f, 1},
+                    .sourceDimensions = iconDimensions,
                 },
                 .backgroundColor = {255, 255, 255, 255}
             });
             CLAY({
-                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .layout = iconLayout,
                 .image = {
                     .imageData = &searchImage,
-                    .sourceDimensions = {2.5f, 1},
+                    .sourceDimensions = iconDimensions,
                 },
                 .backgroundColor = {255, 255, 255, 255}
             });
             CLAY({
-                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .layout = iconLayout,
                 .image = {
                     .imageData = &chatImage,
-                    .sourceDimensions = {2.5f, 1},
+                    .sourceDimensions = iconDimensions,
                 },
                 .backgroundColor = {255, 255, 255, 255}
             });
             CLAY({
-                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .layout = iconLayout,
                 .image = {
                     .imageData = &bellImage,
-                    .sourceDimensions = {2.5f, 1},
+                    .sourceDimensions = iconDimensions,
                 },
                 .backgroundColor = {255, 255, 255, 255}
             });
 
             CLAY({
-                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .layout = iconLayout,
                 .image = {
                     .imageData = &userImage,
-                    .sourceDimensions = {2.5f, 1},
+                    .sourceDimensions = iconDimensions,
                 },
                 .backgroundColor = {255, 255, 255, 255}
             });

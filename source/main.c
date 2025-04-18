@@ -59,10 +59,8 @@ int main() {
 
     C2D_Font fonts[2];
     fonts[0] = C2D_FontLoadSystem(CFG_REGION_USA);
-    fonts[1] = C2D_FontLoad("romfs:/segoeui.bcfnt");
 
     C2D_FontSetFilter(fonts[0], GPU_LINEAR, GPU_LINEAR);
-    C2D_FontSetFilter(fonts[1], GPU_LINEAR, GPU_LINEAR);
 
     uint64_t totalMemorySize = Clay_MinMemorySize();
     Clay_Arena arena = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, malloc(totalMemorySize));
@@ -144,7 +142,6 @@ int main() {
     }
 
     C2D_FontFree(fonts[0]);
-    C2D_FontFree(fonts[1]);
 
     Clay_Citro2d_Deinit();
 
