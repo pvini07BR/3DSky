@@ -1,3 +1,4 @@
+#include "scenes/main_scene.h"
 #define CLAY_IMPLEMENTATION
 #include "clay/clay.h"
 #include "clay/clay_renderer_citro2d.h"
@@ -5,7 +6,6 @@
 #include "scenes/scene.h"
 
 #include <malloc.h>
-#include "scenes/login_scene.h"
 
 #include "bluesky/bluesky.h"
 
@@ -70,7 +70,7 @@ int main() {
     Clay_Initialize(arena, (Clay_Dimensions) { TOP_WIDTH, TOP_HEIGHT + BOTTOM_HEIGHT }, (Clay_ErrorHandler) { HandleClayErrors });
     Clay_SetMeasureTextFunction(MeasureText, &fonts);
 
-    change_scene(get_login_scene());
+    change_scene(get_main_scene());
 
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
 

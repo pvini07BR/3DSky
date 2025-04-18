@@ -227,8 +227,6 @@ void threadMain(void *arg) {
 }
 
 static void login_init(void) {
-    printf("Hello from login scene\n");
-
     svcCreateEvent(&threadRequest,0);
 	threadHandle = threadCreate(threadMain, 0, (16 * 1024), 0x3f, -2, true);
 }
@@ -279,8 +277,6 @@ static void login_update(void) {
 }
 
 static void login_unload(void) {
-    printf("Bye from login scene\n");
-
     if (login_successful) {
         runThread = false;
         svcSignalEvent(threadRequest);

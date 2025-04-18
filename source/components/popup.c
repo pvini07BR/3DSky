@@ -17,7 +17,9 @@ void popup_component(Clay_String text, bool bottomScreen) {
             .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
             .padding = {
                 .top = bottomScreen ? TOP_HEIGHT : 0,
-                .bottom = bottomScreen ? 0 : BOTTOM_HEIGHT
+                .bottom = bottomScreen ? 0 : BOTTOM_HEIGHT,
+                .left = bottomScreen ? 0 : TOP_BOTTOM_DIFF,
+                .right = bottomScreen ? 0 : TOP_BOTTOM_DIFF
             },
             .childAlignment = {
                 .x = CLAY_ALIGN_X_CENTER,

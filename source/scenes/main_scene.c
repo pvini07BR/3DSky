@@ -1,14 +1,40 @@
 #include "scenes/main_scene.h"
 #include <stdio.h>
+#include "c2d/spritesheet.h"
 #include "clay/clay.h"
 
 #include "bluesky/bluesky.h"
+#include "defines.h"
 
 static Scene main_scene;
 
+C2D_SpriteSheet iconsSheet = NULL;
+C2D_SpriteSheet otherIconsSheet = NULL;
+
+C2D_Image homeImage;
+C2D_Image searchImage;
+C2D_Image chatImage;
+C2D_Image bellImage;
+C2D_Image userImage;
+
 static void main_init() {
-    printf("Hello from main scene\n");
-    
+    iconsSheet = C2D_SpriteSheetLoad("romfs:/icons.t3x");
+    if (!iconsSheet) {
+        printf("Failed to load icons sheet\n");
+        return;
+    }
+
+    otherIconsSheet = C2D_SpriteSheetLoad("romfs:/othericons.t3x");
+    if (!otherIconsSheet) {
+        printf("Failed to load other icons sheet\n");
+        return;
+    }
+
+    homeImage = C2D_SpriteSheetGetImage(iconsSheet, 0);
+    searchImage = C2D_SpriteSheetGetImage(iconsSheet, 1);
+    chatImage = C2D_SpriteSheetGetImage(iconsSheet, 2);
+    bellImage = C2D_SpriteSheetGetImage(iconsSheet, 3);
+    userImage = C2D_SpriteSheetGetImage(otherIconsSheet, 0);
 }
 
 static void main_update(void) {
@@ -16,26 +42,95 @@ static void main_update(void) {
 }
 
 static void main_layout(void) {
-    CLAY_TEXT(CLAY_STRING("Main Scene"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0 }));
     CLAY({
         .layout = {
+            .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
-            .sizing = {.height = CLAY_SIZING_FIXED(100)},
+            .padding = { .left = TOP_BOTTOM_DIFF - 1, .right = TOP_BOTTOM_DIFF - 1 }
         },
-        .scroll = {
-            .horizontal = false,
-            .vertical = true,
-        },
-        .backgroundColor = {0, 0, 0, 255}
     }) {
-        for (int i = 0; i < 10; i++) {
-            CLAY_TEXT(CLAY_STRING("Hello"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0 }));
+        CLAY({
+            .layout = {
+                .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                .padding = { .top = TOP_HEIGHT }
+            },
+            .scroll = {
+                .horizontal = false,
+                .vertical = true,
+            },
+            .border = {.width = {.left = 1, .right = 1}, .color = {46, 64, 82, 255}}
+        }) {
+            for (int i = 0; i < 30; i++) {
+                CLAY_TEXT(CLAY_STRING("Hello"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0 }));
+            }
+        }
+
+        CLAY({
+            .layout = {
+                .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_FIXED(40)},
+                .layoutDirection =CLAY_LEFT_TO_RIGHT,
+                .childAlignment = {
+                    .x = CLAY_ALIGN_X_CENTER,
+                    .y = CLAY_ALIGN_Y_CENTER
+                },
+                .padding = {.left = 5, .right = 10}
+            },
+            .border = {.width = {.top= 1 }, .color = {46, 64, 82, 255}},
+            .backgroundColor = {22, 30, 39, 255}
+        }) {
+            CLAY({
+                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .image = {
+                    .imageData = &homeImage,
+                    .sourceDimensions = {2.5f, 1},
+                },
+                .backgroundColor = {255, 255, 255, 255}
+            });
+            CLAY({
+                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .image = {
+                    .imageData = &searchImage,
+                    .sourceDimensions = {2.5f, 1},
+                },
+                .backgroundColor = {255, 255, 255, 255}
+            });
+            CLAY({
+                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .image = {
+                    .imageData = &chatImage,
+                    .sourceDimensions = {2.5f, 1},
+                },
+                .backgroundColor = {255, 255, 255, 255}
+            });
+            CLAY({
+                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .image = {
+                    .imageData = &bellImage,
+                    .sourceDimensions = {2.5f, 1},
+                },
+                .backgroundColor = {255, 255, 255, 255}
+            });
+
+            CLAY({
+                .layout = { .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }},
+                .image = {
+                    .imageData = &userImage,
+                    .sourceDimensions = {2.5f, 1},
+                },
+                .backgroundColor = {255, 255, 255, 255}
+            });
         }
     }
 }
 
 static void main_unload(void) {
-    printf("Bye from main scene\n");
+    if (iconsSheet) {
+        C2D_SpriteSheetFree(iconsSheet);
+    }
+    if (otherIconsSheet) {
+        C2D_SpriteSheetFree(otherIconsSheet);
+    }
 }
 
 Scene* get_main_scene(void) {

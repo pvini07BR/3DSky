@@ -97,6 +97,91 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands,
                 }
                 #endif
             } break;
+            case CLAY_RENDER_COMMAND_TYPE_BORDER: {
+                Clay_BorderRenderData *config = &cmd->renderData.border;
+
+                // Left border
+                if (config->width.left > 0) {
+                    C2D_DrawRectSolid(
+                        bb.x,
+                        bb.y + config->cornerRadius.topLeft,
+                        0.0, config->width.left,
+                        bb.height - config->cornerRadius.topLeft - config->cornerRadius.bottomLeft,
+                        C2D_Color32(config->color.r, config->color.g, config->color.b, config->color.a)
+                    );
+                }
+                // Right border
+                if (config->width.right > 0) {
+                    C2D_DrawRectSolid(
+                        bb.x + bb.width - config->width.right,
+                        bb.y + config->cornerRadius.topRight,
+                        0.0, config->width.right,
+                        bb.height - config->cornerRadius.topRight - config->cornerRadius.bottomRight,
+                        C2D_Color32(config->color.r, config->color.g, config->color.b, config->color.a)
+                    );
+                }
+                // Top border
+                if (config->width.top > 0) {
+                    C2D_DrawRectSolid(
+                        bb.x + config->cornerRadius.topLeft,
+                        bb.y,
+                        0.0,
+                        bb.width - config->cornerRadius.topLeft - config->cornerRadius.topRight,
+                        config->width.top,
+                        C2D_Color32(config->color.r, config->color.g, config->color.b, config->color.a)
+                    );
+                }
+                // Bottom border
+                if (config->width.bottom > 0) {
+                    C2D_DrawRectSolid(
+                        bb.x + config->cornerRadius.bottomLeft,
+                        bb.y + bb.height - config->width.bottom,
+                        0.0,
+                        bb.width - config->cornerRadius.bottomLeft - config->cornerRadius.bottomRight,
+                        config->width.bottom,
+                        C2D_Color32(config->color.r, config->color.g, config->color.b, config->color.a)
+                    );
+                }
+            } break;
+            case CLAY_RENDER_COMMAND_TYPE_IMAGE: {
+                Clay_ImageRenderData *config = &cmd->renderData.image;
+                C2D_Image image = *(C2D_Image*)config->imageData;
+
+                // Set backgroundColor on a widget with a image to change the image's color
+                // do not set to make the image render as it is
+                Clay_Color tintColor = cmd->renderData.image.backgroundColor;
+                float blend = 1.0f;
+                if (tintColor.r == 0 && tintColor.g == 0 && tintColor.b == 0 && tintColor.a == 0) {
+                    tintColor = (Clay_Color) { 255, 255, 255, 255 };
+                    blend = 0.0f;
+                }
+                C2D_ImageTint tint;
+                C2D_PlainImageTint(&tint, ClayColor_to_C2DColor(tintColor), blend);
+                
+                float scaleX = bb.width / (float)image.subtex->width;
+                float scaleY = bb.height / (float)image.subtex->height;
+                
+                // Usar a menor escala para manter a proporção da imagem
+                float scale = (scaleX < scaleY) ? scaleX : scaleY;
+                
+                // Calcular as dimensões da imagem escalada
+                float scaledWidth = (float)image.subtex->width * scale;
+                float scaledHeight = (float)image.subtex->height * scale;
+                
+                // Calcular a posição para centralizar a imagem
+                float x = bb.x + (bb.width - scaledWidth) / 2.0f;
+                float y = bb.y + (bb.height - scaledHeight) / 2.0f;
+
+                C2D_DrawImageAt(
+                    image,
+                    x,
+                    y,
+                    0.0f,
+                    &tint,
+                    scale,
+                    scale
+                );
+            } break;
 
             // ---- (future) CLIP ----
             //case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END: {
