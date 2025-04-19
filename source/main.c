@@ -121,7 +121,7 @@ int main() {
             C2D_TargetClear(top, C2D_Color32(22, 30, 39, 255));
             C2D_SceneBegin(top);
 
-            Clay_Citro2d_Render(&renderCommands, fonts);
+            Clay_Citro2d_Render(&renderCommands, fonts, GFX_TOP);
         }
 
         if (bottom != NULL) {
@@ -129,7 +129,7 @@ int main() {
             C2D_SceneBegin(bottom);
 
             C2D_ViewTranslate(-(TOP_WIDTH - BOTTOM_WIDTH) / 2.0f, -TOP_HEIGHT);
-            Clay_Citro2d_Render(&renderCommands, fonts);
+            Clay_Citro2d_Render(&renderCommands, fonts, GFX_BOTTOM);
             C2D_ViewReset();
         }
 

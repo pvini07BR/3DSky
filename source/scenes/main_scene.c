@@ -17,6 +17,37 @@ C2D_Image chatImage;
 C2D_Image bellImage;
 C2D_Image userImage;
 
+void post_component(Clay_String username, Clay_String handle, Clay_String postText) {
+    CLAY({
+        .layout = {
+            .padding = CLAY_PADDING_ALL(10),
+            .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
+            .layoutDirection = CLAY_LEFT_TO_RIGHT,
+            .childGap = 4
+        },
+        .border = {.width = {.bottom = 1}, .color = {46, 64, 82, 255}}
+    }) {
+        CLAY_TEXT(CLAY_STRING("pfp"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0 }));
+        CLAY({
+            .layout = {
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+            }
+        }) {
+            CLAY({
+                .layout = {
+                    .layoutDirection = CLAY_LEFT_TO_RIGHT,
+                    .childAlignment = {.y = CLAY_ALIGN_Y_CENTER},
+                    .childGap = 4
+                },
+            }) {
+                CLAY_TEXT(username, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0 }));
+                CLAY_TEXT(handle, CLAY_TEXT_CONFIG({ .textColor = {128, 128, 128, 255}, .fontSize = 15, .fontId = 0 }));
+            }
+            CLAY_TEXT(postText, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0 }));
+        }
+    }
+}
+
 static void main_init() {
     iconsSheet = C2D_SpriteSheetLoad("romfs:/icons.t3x");
     if (!iconsSheet) {
@@ -62,7 +93,7 @@ static void main_layout(void) {
             .border = {.width = {.left = 1, .right = 1}, .color = {46, 64, 82, 255}}
         }) {
             for (int i = 0; i < 30; i++) {
-                CLAY_TEXT(CLAY_STRING("Hello"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0 }));
+                post_component(CLAY_STRING("John Doe"), CLAY_STRING("john_doe.bsky.social"), CLAY_STRING("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."));
             }
         }
 

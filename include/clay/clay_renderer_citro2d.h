@@ -9,6 +9,14 @@
 #define STRING_SLOT_COUNT   16
 #define STRING_SLOT_SIZE    256
 
+#define TOP_WIDTH 400
+#define TOP_HEIGHT 240
+
+#define BOTTOM_WIDTH 320
+#define BOTTOM_HEIGHT 240
+
+#define TOP_BOTTOM_DIFF (TOP_WIDTH - BOTTOM_WIDTH) / 2.0f
+
 // Initialize Citro2D + text buffer
 void Clay_Citro2d_Init(void);
 
@@ -50,8 +58,10 @@ static inline Clay_Dimensions MeasureText(Clay_StringSlice        text,
 }
 
 // Render loop: rectangles, text, (stub) clipping, etc.
+// The screen argument is used to determine if the element is visible on the current screen.
 void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands,
-                         C2D_Font*                fonts);
+                         C2D_Font*                fonts,
+                         gfxScreen_t              screen);
 
 // Clean up everything
 void Clay_Citro2d_Deinit(void);

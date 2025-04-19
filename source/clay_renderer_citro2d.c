@@ -3,6 +3,28 @@
 #include <string.h>
 #include <stdio.h>
 
+bool is_visible(gfxScreen_t screen, Clay_BoundingBox boundingBox) {
+    float x = boundingBox.x;
+    float y = boundingBox.y;
+    float width = boundingBox.width;
+    float height = boundingBox.height;
+
+    bool isVisibleHorizontally = false;
+    bool isVisibleVertically = false;
+
+    if (screen == GFX_TOP) {
+        isVisibleHorizontally = (x + width >= 0 && x < TOP_WIDTH);
+        isVisibleVertically = (y + height > 0 && y < TOP_HEIGHT);
+    } else if (screen == GFX_BOTTOM) {
+        isVisibleHorizontally = (x + width >= TOP_BOTTOM_DIFF &&
+                                 x < BOTTOM_WIDTH + TOP_BOTTOM_DIFF);
+        isVisibleVertically =
+            (y + height >= TOP_HEIGHT && y < (TOP_HEIGHT + BOTTOM_HEIGHT));
+    }
+
+    return isVisibleHorizontally && isVisibleVertically;
+}
+
 static C2D_TextBuf textBuf = NULL;
 
 // Ring‑buffer for temporary c‑strings
@@ -32,8 +54,8 @@ u32 ClayColor_to_C2DColor(Clay_Color color) {
     return C2D_Color32(color.r, color.g, color.b, color.a);
 }
 
-void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands,
-                         C2D_Font*                fonts)
+// The screen argument is used to determine if the element is visible on the current screen.
+void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* fonts, gfxScreen_t screen)
 {
     // Prevent any mid‐frame glyph‐buffer flush/flicker
     if (textBuf) C2D_TextBufClear(textBuf);
@@ -41,6 +63,9 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands,
     for (int i = 0; i < renderCommands->length; i++) {
         Clay_RenderCommand* cmd = &renderCommands->internalArray[i];
         Clay_BoundingBox     bb  = cmd->boundingBox;
+
+        // Perform the clipping of not visible elements so it doesnt lag like hell
+        if (!is_visible(screen, bb)) continue;
 
         switch (cmd->commandType) {
 
