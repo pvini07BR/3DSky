@@ -16,7 +16,7 @@ enum ConsoleMode {
     BOTTOM
 };
 
-enum ConsoleMode consoleMode = TOP;
+enum ConsoleMode consoleMode = OFF;
 
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s\n", errorData.errorText.chars);

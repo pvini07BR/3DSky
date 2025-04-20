@@ -103,6 +103,15 @@ static void main_init() {
     svcSignalEvent(threadReq);
 }
 
+void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
+    if (postsLoaded) {
+        if (pointerInfo.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
+            postsLoaded = false;
+            svcSignalEvent(threadReq);
+        }
+    }
+}
+
 static void main_layout(void) {
     CLAY({
         .layout = {
@@ -122,7 +131,14 @@ static void main_layout(void) {
                 .horizontal = false,
                 .vertical = true,
             },
-            .border = {.width = {.left = 1, .right = 1}, .color = {46, 64, 82, 255}}
+            .border = {
+                .width = {
+                    .left = 1,
+                    .right = 1,
+                    .betweenChildren = CLAY_TOP_TO_BOTTOM
+                },
+                .color = {46, 64, 82, 255}
+            }
         }) {
             if (!postsLoaded) {
                 CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
@@ -142,6 +158,7 @@ static void main_layout(void) {
                     },
                     .border = {.width = {.top = 1}, .color = {46, 64, 82, 255}}
                 }) {
+                    Clay_OnHover(onLoadMorePosts, 0);
                     CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
                 }
             }
@@ -210,12 +227,7 @@ static void main_layout(void) {
 }
 
 static void main_update(void) {
-    u32 kDown = hidKeysUp();
-
-    if (kDown & KEY_TOUCH && Clay_PointerOver(CLAY_ID("load_more_button"))) {
-        postsLoaded = false;
-        svcSignalEvent(threadReq);
-    }
+    
 }
 
 static void main_unload(void) {

@@ -9,8 +9,7 @@ void post_component(struct Post* post) {
             .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW(0)},
             .layoutDirection = CLAY_LEFT_TO_RIGHT,
             .childGap = 4
-        },
-        .border = {.width = {.top = 1}, .color = {46, 64, 82, 255}}
+        }
     }) {
         CLAY_TEXT(CLAY_STRING("pfp"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0 }));
         CLAY({
