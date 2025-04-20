@@ -1,9 +1,6 @@
 #include "components/button.h"
 #include <3ds.h>
 
-/**
- * @brief Callback para interação com o botão
- */
 static void HandleButtonInteraction(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     if (pointerInfo.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
         void (*onClick)(void*) = (void (*)(void*))userData;

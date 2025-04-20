@@ -210,7 +210,7 @@ static void main_layout(void) {
 }
 
 static void main_update(void) {
-    u32 kDown = hidKeysDown();
+    u32 kDown = hidKeysUp();
 
     if (kDown & KEY_TOUCH && Clay_PointerOver(CLAY_ID("load_more_button"))) {
         postsLoaded = false;

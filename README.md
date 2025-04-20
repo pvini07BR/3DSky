@@ -3,17 +3,24 @@
 Also, to be able to run it and make HTTPS requests, you will need a SSL certificate file. It's a file called ``cacert.pem``, and it should be under the ``config/ssl`` directory on the 3DS' SD card.
 You can get that file here: https://curl.se/docs/caextract.html
 
+# Known issues
+
+Currently, links or very long words cannot be wrapped on the posts. Unfortunately, this is a Clay issue, not an issue from the program, so there isn't much I can do about it.
+There is already an open issue about it: https://github.com/nicbarker/clay/issues/165
+
 # How to compile
 
-This repo has been made on Linux, more specifically Arch Linux.
 You will need to have [devkitPro](https://devkitpro.org/wiki/Getting_Started) installed.
 You will need these packages:
 ```
 sudo (dkp-)pacman -S 3ds-dev 3ds-jansson 3ds-curl
 ```
-
 After that, all you have to do is run ``make`` on the project directory, and it should compile into a .3dsx file.
 You can send it into your Nintendo 3DS by opening Homebrew Launcher, pressing Y, and then running ``3dslink -a [address] [compiled file].3dsx`` on your terminal.
+
+Also, this repo comes with a .clangd file, which helps you to get code auto completion working.
+However, it's paths are set for an Linux enviroment only. If you're on Windows, all you need to do is change the paths. (I wish there was a way of setting the paths depending on the OS though)
+Also, you need the ``compile_commands.json`` file, which you can generate by running ``bear -- make``. The reason why it haven't been added in the repo is because it depends on how the program gets compiled.
 
 # Credits
 
