@@ -1,3 +1,4 @@
+#include "scenes/login_scene.h"
 #include "scenes/main_scene.h"
 #define CLAY_IMPLEMENTATION
 #include "clay/clay.h"
@@ -68,7 +69,10 @@ int main() {
     Clay_Initialize(arena, (Clay_Dimensions) { TOP_WIDTH, TOP_HEIGHT + BOTTOM_HEIGHT }, (Clay_ErrorHandler) { HandleClayErrors });
     Clay_SetMeasureTextFunction(MeasureText, &fonts);
 
-    change_scene(get_main_scene());
+    // Use this code to login if you don't want to get through the login scene over and over
+    //bs_client_init("user.bsky.social", "password", NULL);
+
+    change_scene(get_login_scene());
 
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
 

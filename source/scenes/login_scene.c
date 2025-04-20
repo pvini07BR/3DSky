@@ -279,15 +279,11 @@ static void login_update(void) {
 static void login_unload(void) {
     if (login_successful) {
         runThread = false;
-        svcSignalEvent(threadRequest);
+        svcCloseHandle(threadRequest);
         return;
     }
 
     runThread = false;
-
-    svcSignalEvent(threadRequest);
-    threadJoin(threadHandle, U64_MAX);
-
     svcCloseHandle(threadRequest);
 }
 
