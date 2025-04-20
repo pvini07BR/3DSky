@@ -35,7 +35,7 @@ void postLoadingThread(void* arg) {
 		svcClearEvent(threadReq);
 
         bs_client_pagination_opts opts = {
-            .cursor = cursor,
+            .cursor = (char*)cursor,
             .limit = 50
         };
         bs_client_response_t* response = bs_client_timeline_get(&opts);
@@ -81,22 +81,17 @@ void postLoadingThread(void* arg) {
 
 static void main_init() {
     iconsSheet = C2D_SpriteSheetLoad("romfs:/icons.t3x");
-    if (!iconsSheet) {
-        printf("Failed to load icons sheet\n");
-        return;
+    if (iconsSheet) {
+        homeImage = C2D_SpriteSheetGetImage(iconsSheet, 0);
+        searchImage = C2D_SpriteSheetGetImage(iconsSheet, 1);
+        chatImage = C2D_SpriteSheetGetImage(iconsSheet, 2);
+        bellImage = C2D_SpriteSheetGetImage(iconsSheet, 3);
     }
 
     otherIconsSheet = C2D_SpriteSheetLoad("romfs:/othericons.t3x");
-    if (!otherIconsSheet) {
-        printf("Failed to load other icons sheet\n");
-        return;
+    if (otherIconsSheet) {
+        userImage = C2D_SpriteSheetGetImage(otherIconsSheet, 0);
     }
-
-    homeImage = C2D_SpriteSheetGetImage(iconsSheet, 0);
-    searchImage = C2D_SpriteSheetGetImage(iconsSheet, 1);
-    chatImage = C2D_SpriteSheetGetImage(iconsSheet, 2);
-    bellImage = C2D_SpriteSheetGetImage(iconsSheet, 3);
-    userImage = C2D_SpriteSheetGetImage(otherIconsSheet, 0);
 
     svcCreateEvent(&threadReq,0);
     thread = threadCreate(postLoadingThread, 0, (16 * 1024), 0x3f, -2, true);

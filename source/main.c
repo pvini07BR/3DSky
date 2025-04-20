@@ -1,14 +1,13 @@
-#include "scenes/login_scene.h"
-#include "scenes/main_scene.h"
+#include "3ds/types.h"
+#include <malloc.h>
+
 #define CLAY_IMPLEMENTATION
 #include "clay/clay.h"
 #include "clay/clay_renderer_citro2d.h"
-#include "defines.h"
-#include "scenes/scene.h"
-
-#include <malloc.h>
 
 #include "bluesky/bluesky.h"
+
+#include "scenes/login_scene.h"
 
 enum ConsoleMode {
     OFF,
@@ -76,6 +75,7 @@ int main() {
 
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
 
+    u64 lastTime = osGetTime();
     while(aptMainLoop()) {
         hidScanInput();
 
@@ -88,6 +88,10 @@ int main() {
         touchPosition touch = {-1};
         hidTouchRead(&touch);
 
+        u64 currentTime = osGetTime();
+        float deltaTime = (currentTime - lastTime) / 1000.0f;
+        lastTime = currentTime;
+
         if (kHeld & KEY_TOUCH) {
             float touch_x = touch.px + TOP_BOTTOM_DIFF;
             float touch_y = touch.py + TOP_HEIGHT;
@@ -95,15 +99,15 @@ int main() {
             Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, kHeld & KEY_TOUCH);
             if (lastTouchPos.x != -1.0f && lastTouchPos.y != -1.0f) {
                 Clay_Vector2 scrollDelta = (Clay_Vector2) {touch_x - lastTouchPos.x, touch_y - lastTouchPos.y};
-                Clay_UpdateScrollContainers(true, scrollDelta, 1.0 / 60.0f);
+                Clay_UpdateScrollContainers(true, scrollDelta, deltaTime);
                 lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
             } else {
                 lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
-                Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, 1.0 / 60.0f);
+                Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, deltaTime);
             }
         } else {
             Clay_SetPointerState((Clay_Vector2) {-100.0f, -100.0f}, false);
-            Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, 1.0 / 60.0f);
+            Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, deltaTime);
             lastTouchPos = (Clay_Vector2) {-1.0f, -1.0f};
         }
 

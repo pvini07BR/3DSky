@@ -19,6 +19,7 @@ void HandleTextEditInteraction(Clay_ElementId elementId, Clay_PointerData pointe
         swkbdSetInitialText(&swkbd, data->textToEdit);
         swkbdSetHintText(&swkbd, data->hintText.chars);
         swkbdSetValidation(&swkbd, SWKBD_NOTEMPTY_NOTBLANK, 0, data->maxLength > 0 ? data->maxLength : 80);
+        swkbdSetFeatures(&swkbd, SWKBD_DARKEN_TOP_SCREEN);
 
         if (data->isPassword) {
             swkbdSetPasswordMode(&swkbd, SWKBD_PASSWORD_HIDE_DELAY);
