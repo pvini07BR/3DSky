@@ -1,5 +1,6 @@
 #include "3ds/types.h"
 #include <malloc.h>
+#include <stdio.h>
 
 #define CLAY_IMPLEMENTATION
 #include "clay/clay.h"
@@ -8,6 +9,7 @@
 #include "bluesky/bluesky.h"
 
 #include "scenes/login_scene.h"
+#include "scenes/main_scene.h"
 
 enum ConsoleMode {
     OFF,
@@ -112,15 +114,33 @@ int main() {
         }
 
         Scene* current = get_current_scene();
-        if (current != NULL) {
-            current->update();
-        }
+        if (current != NULL) current->update();
 
         Clay_BeginLayout();
 
-        if (current != NULL) {
-            current->layout();
+        if (current != NULL) current->layout();
+
+        // I was trying to do FPS on here but the text gets glitched for some reason
+        /*
+        CLAY({
+            .floating = {
+                .attachTo = CLAY_ATTACH_TO_ROOT,
+                .attachPoints = {
+                    .element = CLAY_ATTACH_POINT_LEFT_TOP,
+                    .parent = CLAY_ATTACH_POINT_LEFT_TOP
+                }
+            }
+        }) {
+            int size = snprintf(NULL, 0, "FPS: %.2f", 1.0f / deltaTime);
+            char *tempBuf = malloc(size + 1);
+            if (tempBuf){
+                sprintf(tempBuf, "FPS: %.2f", 1.0f / deltaTime);
+                Clay_String str = (Clay_String){.chars = tempBuf, .length = size};
+                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0 }));
+                free(tempBuf);
+            }
         }
+        */
 
         Clay_RenderCommandArray renderCommands = Clay_EndLayout();
 

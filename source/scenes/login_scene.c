@@ -103,7 +103,7 @@ static void login_layout(void) {
             .layout = {
                 .sizing = {CLAY_SIZING_FIXED(TOP_WIDTH), CLAY_SIZING_FIXED(TOP_HEIGHT)},
                 .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER},
-            }
+            },
         }) {
             CLAY({
                 .layout = { .sizing = { .width = CLAY_SIZING_FIXED(256), .height = CLAY_SIZING_FIXED(128) }},
