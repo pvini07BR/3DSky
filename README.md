@@ -6,7 +6,7 @@
 
 ~~You can get that file here: https://curl.se/docs/caextract.html~~
 
-You no longer need to download the file. This app now checkes and downloads the SSL certificate file for you.
+You no longer need to download the file. This app now checks and downloads the SSL certificate file for you.
 
 # Known issues
 
