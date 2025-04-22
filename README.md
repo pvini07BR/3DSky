@@ -4,9 +4,9 @@
 
 ~~Also, to be able to run it and make HTTPS requests, you will need a SSL certificate file. It's a file called ``cacert.pem``, and it should be under the ``config/ssl`` directory on the 3DS' SD card.~~
 
-You no longer need to download the file. This app now checkes and downloads the SSL certificate file for you.
+~~You can get that file here: https://curl.se/docs/caextract.html~~
 
-You can get that file here: https://curl.se/docs/caextract.html
+You no longer need to download the file. This app now checkes and downloads the SSL certificate file for you.
 
 # Known issues
 
