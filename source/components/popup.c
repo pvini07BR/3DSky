@@ -4,12 +4,32 @@
 #include <3ds.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-// Variáveis globais para o popup
-static char popup_message_text[256] = "";
+static enum PopupType popupType = POPUP_TYPE_MESSAGE;
+
+static char* popup_message_text = NULL;
 static size_t popup_message_length = 0;
 static bool show_popup_flag = false;
-static void (*popup_on_close)(void) = NULL;
+
+static void (*popup_on_confirm)(void*) = NULL;
+
+void close_popup(void* args) {
+    show_popup_flag = false;
+    if (popup_message_text) {
+        free(popup_message_text);
+        popup_message_text = NULL;
+        popup_message_length = 0;
+    }
+}
+
+void close_and_confirm_popup(void* args) {
+    close_popup(NULL);
+    if (popup_on_confirm != NULL) {
+        popup_on_confirm(NULL);
+        popup_on_confirm = NULL;
+    }
+}
 
 void popup_component(Clay_String text, bool bottomScreen) {
     CLAY({
@@ -53,49 +73,70 @@ void popup_component(Clay_String text, bool bottomScreen) {
             .backgroundColor = {30, 41, 53, 255}
         }) {
             CLAY_TEXT(text, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 16, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
-            button_component(CLAY_STRING("closePopup"), CLAY_STRING("Ok"), false, NULL);
+            if (popupType != POPUP_TYPE_PROGRESS) {
+                CLAY({
+                    .layout = {
+                        .childAlignment = {
+                            .x = CLAY_ALIGN_X_CENTER,
+                            .y = CLAY_ALIGN_Y_CENTER
+                        },
+                        .layoutDirection = CLAY_LEFT_TO_RIGHT,
+                        .childGap = 10
+                    }
+                }) {
+                    button_component(
+                        CLAY_STRING("closePopup"),
+                        popupType == POPUP_TYPE_CONFIRM ? CLAY_STRING("No") : CLAY_STRING("Ok"),
+                        false,
+                        close_popup
+                    );
+                    if (popupType == POPUP_TYPE_CONFIRM || popupType == POPUP_TYPE_ERROR) {
+                        button_component(
+                            CLAY_STRING("confirmPopup"),
+                            popupType == POPUP_TYPE_ERROR ? CLAY_STRING("Retry") : CLAY_STRING("Yes"),
+                            false,
+                            close_and_confirm_popup
+                        );
+                    }
+                }
+            }
         }
     }
 }
 
-void show_popup_message(const char* message, void (*onClose)(void)) {
+void show_popup_message(const char* message, enum PopupType type, void (*onConfirm)(void*)) {
     if (message == NULL) {
         return;
     }
-    
-    strncpy(popup_message_text, message, sizeof(popup_message_text) - 1);
-    popup_message_text[sizeof(popup_message_text) - 1] = '\0';
-    popup_message_length = strlen(popup_message_text);
-    show_popup_flag = true;
-    popup_on_close = onClose;
-}
 
-void close_popup(void) {
-    show_popup_flag = false;
-    if (popup_on_close != NULL) {
-        popup_on_close();
-        popup_on_close = NULL;
+    size_t new_length = strlen(message);
+    char *new_message = malloc(new_length + 1);
+    if (!new_message) {
+        fprintf(stderr, "Error: Failed to allocate memory for the popup text.\n");
+        return;
     }
+
+    strncpy(new_message, message, new_length);
+    new_message[new_length] = '\0';
+
+    if (popup_message_text) {
+        free(popup_message_text);
+    }
+
+    popup_message_text = new_message;
+    popup_message_length = new_length;
+    show_popup_flag = true;
+    popupType = type;
+    popup_on_confirm = onConfirm;
 }
 
 bool is_popup_visible(void) {
     return show_popup_flag;
 }
 
-// Função para verificar se o botão de fechar o popup foi clicado
-bool check_popup_close_button(void) {
-    u32 kDown = hidKeysDown();
-    if (show_popup_flag && kDown & KEY_TOUCH && Clay_PointerOver(CLAY_ID("closePopup"))) {
-        close_popup();
-        return true;
-    }
-    return false;
-}
-
-// Função para renderizar o popup atual
 void render_current_popup(bool bottomScreen) {
-    if (show_popup_flag) {
+    if (show_popup_flag && popup_message_text) {
         Clay_String popup_text = { .length = popup_message_length, .chars = popup_message_text };
         popup_component(popup_text, bottomScreen);
     }
-} 
+}

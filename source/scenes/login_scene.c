@@ -1,25 +1,24 @@
-#include "scenes/login_scene.h"
+#include "sys/unistd.h"
+
+#include <citro2d.h>
 #include <stdio.h>
-#include "c2d/spritesheet.h"
-#include "clay/clay.h"
+#include <string.h>
+#include "bluesky/bluesky.h"
+
 #include "defines.h"
-#include "scenes/scene.h"
 #include "scenes/main_scene.h"
 #include "components/button.h"
 #include "components/textedit.h"
 #include "components/popup.h"
 
-#include <stdlib.h>
-#include <sys/select.h>
-#include <curl/curl.h>
-#include <string.h>
-#include <3ds.h>
+#include "sys/select.h"
+#include "curl/curl.h"
 
-#include <jansson.h>
-
-#include "bluesky/bluesky.h"
+#define CERT_FILE_PATH "/config/ssl/cacert.pem"
 
 static Scene login_scene;
+
+bool downloading_cert_file = false;
 
 bool logging_in = false;
 bool login_successful = false;
@@ -43,42 +42,102 @@ TextEditData passwordData = {
     .disable = false
 };
 
-Thread threadHandle;
-Handle threadRequest;
-bool runThread = true;
+bool disableLogin = true;
 
 C2D_SpriteSheet logoSpriteSheet;
 C2D_Image logoImage;
 
+void on_download_certificate_file_confirm();
+
+int progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+    if (dltotal > 0) {
+        double progress = (double)dlnow / (double)dltotal * 100.0;
+        printf("\rDownload progress: %.2f%%", progress);
+        fflush(stdout);
+    }
+    return 0; // Retorne 0 para continuar o download, ou um valor diferente de 0 para abortar
+}
+
+size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
+{
+    size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
+    return written;
+}
+
+void download_cert_file_thread() {
+    CURL* hnd = curl_easy_init();
+    curl_easy_setopt(hnd, CURLOPT_URL, "https://curl.se/ca/cacert.pem");
+    //curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(hnd, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(hnd, CURLOPT_XFERINFOFUNCTION, progress_callback);
+    curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, write_data);
+    // Ironically, you have to disable SSL certificate checking in order to download the SSL certificate lol
+    curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYPEER, 0L);
+
+    bool errorOcurred = false;
+
+    FILE* pagefile = fopen(CERT_FILE_PATH, "wb");
+    if(pagefile) {
+        curl_easy_setopt(hnd, CURLOPT_WRITEDATA, pagefile);
+        CURLcode ret = curl_easy_perform(hnd);
+        fclose(pagefile);
+
+        if (ret != CURLE_OK) {
+            size_t buffer_size = strlen("Error at downloading cert file: ") + strlen(curl_easy_strerror(ret)) + 1;
+            
+            char* errorBuffer = malloc(buffer_size);
+
+            snprintf(errorBuffer, buffer_size, "Error at downloading cert file: %s", curl_easy_strerror(ret));
+            show_popup_message(errorBuffer, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
+            
+            free(errorBuffer);
+
+            remove("/config/ssl/cacert.pem");
+            errorOcurred = true;
+        }
+    } else {
+        show_popup_message("Error opening file to download", POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
+        errorOcurred = true;
+    }
+    
+    curl_easy_cleanup(hnd);
+    if (!errorOcurred)
+        close_popup(NULL);
+    downloading_cert_file = false;
+}
+
+void on_download_certificate_file_confirm() {
+    if (!downloading_cert_file) {
+        show_popup_message("Downloading certificate file...", POPUP_TYPE_PROGRESS, NULL);
+        threadCreate(download_cert_file_thread, 0, (16 * 1024), 0x3f, -2, true);
+        downloading_cert_file = true;
+    }
+}
+
+void loginThread(void *arg) {
+    char error_msg[256];
+    int code = bs_client_init(username, password, error_msg);
+    if (code != 0) {
+        show_popup_message(error_msg, POPUP_TYPE_MESSAGE, NULL);
+        logging_in = false;
+    } else {
+        login_successful = true;
+    }
+}
+
 void on_login_button_pressed() {
     if (strlen(username) == 0 || strlen(password) == 0) {
-        show_popup_message("Error: Username or password is empty", NULL);
+        show_popup_message("Error: Username or password is empty", POPUP_TYPE_MESSAGE, NULL);
         return;
     }
 
-    if (logging_in || is_popup_visible() || login_successful) {
+    if (disableLogin) {
         return;
     }
 
     logging_in = true;
     
-    svcSignalEvent(threadRequest);
-}
-
-void threadMain(void *arg) {
-	while(runThread) {
-		svcWaitSynchronization(threadRequest, U64_MAX);
-		svcClearEvent(threadRequest);
-
-        char error_msg[256];
-        int code = bs_client_init(username, password, error_msg);
-        if (code != 0) {
-            show_popup_message(error_msg, NULL);
-            logging_in = false;
-        } else {
-            login_successful = true;
-        }
-    }
+    threadCreate(loginThread, 0, (16 * 1024), 0x3f, -2, true);
 }
 
 static void login_init(void) {
@@ -86,9 +145,10 @@ static void login_init(void) {
     if (logoSpriteSheet) {
         logoImage = C2D_SpriteSheetGetImage(logoSpriteSheet, 0);
     }
-
-    svcCreateEvent(&threadRequest,0);
-	threadHandle = threadCreate(threadMain, 0, (16 * 1024), 0x3f, -2, true);
+    
+    if (access(CERT_FILE_PATH, F_OK) != 0) {
+        show_popup_message("It seems the certificate file (cacert.pem) needed for this app was not found.\nWould you like to download it?", POPUP_TYPE_CONFIRM, on_download_certificate_file_confirm);
+    }
 }
 
 static void login_layout(void) {
@@ -127,7 +187,7 @@ static void login_layout(void) {
             textedit_component(CLAY_STRING("handle"), &handleData);
             textedit_component(CLAY_STRING("password"), &passwordData);
             if (!logging_in) {
-                button_component(CLAY_STRING("login"), CLAY_STRING("Login"), logging_in || is_popup_visible() || login_successful, on_login_button_pressed);
+                button_component(CLAY_STRING("login"), CLAY_STRING("Login"), disableLogin, on_login_button_pressed);
             } else {
                 button_component(CLAY_STRING("login"), CLAY_STRING("Logging in..."), logging_in, NULL);
             }
@@ -138,31 +198,20 @@ static void login_layout(void) {
 }
 
 static void login_update(void) {
-    handleData.disable = logging_in || is_popup_visible() || login_successful;
-    passwordData.disable = logging_in || is_popup_visible() || login_successful;
+    disableLogin = downloading_cert_file || logging_in || is_popup_visible() || login_successful;
+
+    handleData.disable = disableLogin;
+    passwordData.disable = disableLogin;
 
     if (login_successful) {
-        login_successful = false;
         change_scene(get_main_scene());
-        return;
     }
-
-    check_popup_close_button();
 }
 
 static void login_unload(void) {
     if (logoSpriteSheet) {
         C2D_SpriteSheetFree(logoSpriteSheet);
     }
-
-    if (login_successful) {
-        runThread = false;
-        svcCloseHandle(threadRequest);
-        return;
-    }
-
-    runThread = false;
-    svcCloseHandle(threadRequest);
 }
 
 Scene* get_login_scene(void) {
