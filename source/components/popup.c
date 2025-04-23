@@ -14,8 +14,11 @@ static bool show_popup_flag = false;
 
 static void (*popup_on_confirm)(void*) = NULL;
 
+static float progress_bar_value = 0.0f;
+
 void close_popup(void* args) {
     show_popup_flag = false;
+    progress_bar_value = 0.0f;
     if (popup_message_text) {
         free(popup_message_text);
         popup_message_text = NULL;
@@ -99,6 +102,39 @@ void popup_component(Clay_String text, bool bottomScreen) {
                         );
                     }
                 }
+            } else {
+                CLAY({
+                    .layout = {
+                        .sizing = {
+                            .width = CLAY_SIZING_GROW(0),
+                            .height = CLAY_SIZING_FIXED(30)
+                        },
+                        .childAlignment = {
+                            .x = CLAY_ALIGN_X_LEFT,
+                            .y = CLAY_ALIGN_Y_CENTER
+                        },
+                        .padding = CLAY_PADDING_ALL(2)
+                    },
+                    .border = {
+                        .color = {255, 255, 255, 255},
+                        .width = {
+                            .top = 1,
+                            .bottom = 1,
+                            .left = 1,
+                            .right = 1
+                        }
+                    },
+                }) {
+                    CLAY({
+                        .layout = {
+                            .sizing = {
+                                .width = CLAY_SIZING_PERCENT(progress_bar_value),
+                                .height = CLAY_SIZING_GROW(0)
+                            }
+                        },
+                        .backgroundColor = {255, 255, 255, 255},
+                    });
+                }
             }
         }
     }
@@ -128,6 +164,15 @@ void show_popup_message(const char* message, enum PopupType type, void (*onConfi
     show_popup_flag = true;
     popupType = type;
     popup_on_confirm = onConfirm;
+}
+
+void popup_set_progress_bar(float value) {
+    if (value < 0.0f) {
+        value = 0.0f;
+    } else if (value > 1.0f) {
+        value = 1.0f;
+    }
+    progress_bar_value = value;
 }
 
 bool is_popup_visible(void) {

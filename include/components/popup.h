@@ -22,4 +22,6 @@ void show_popup_message(const char* message, enum PopupType type, void (*onConfi
 bool is_popup_visible(void);
 void render_current_popup(bool bottomScreen);
 
+void popup_set_progress_bar(float value);
+
 #endif

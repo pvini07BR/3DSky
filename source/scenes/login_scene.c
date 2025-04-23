@@ -51,11 +51,9 @@ void on_download_certificate_file_confirm();
 
 int progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
     if (dltotal > 0) {
-        double progress = (double)dlnow / (double)dltotal * 100.0;
-        printf("\rDownload progress: %.2f%%", progress);
-        fflush(stdout);
+        popup_set_progress_bar((float)dlnow / (float)dltotal);
     }
-    return 0; // Retorne 0 para continuar o download, ou um valor diferente de 0 para abortar
+    return 0;
 }
 
 size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
@@ -67,7 +65,6 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 void download_cert_file_thread() {
     CURL* hnd = curl_easy_init();
     curl_easy_setopt(hnd, CURLOPT_URL, "https://curl.se/ca/cacert.pem");
-    //curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(hnd, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(hnd, CURLOPT_XFERINFOFUNCTION, progress_callback);
     curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, write_data);
