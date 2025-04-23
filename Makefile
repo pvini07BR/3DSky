@@ -39,7 +39,7 @@ APP_AUTHOR := pvini07BR
 
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/scenes source/components
+SOURCES		:=	source source/scenes source/components source/pages
 DATA		:=	data
 INCLUDES	:=	include
 GRAPHICS	:=	gfx gfx/fonts gfx/graphics

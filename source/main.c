@@ -73,6 +73,7 @@ int main() {
     // Use this code to login if you don't want to get through the login scene over and over
     //bs_client_init("user.bsky.social", "password", NULL);
 
+    // Change get_login_scene() to get_main_scene() to skip the login scene
     change_scene(get_login_scene());
 
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
