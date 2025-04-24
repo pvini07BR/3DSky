@@ -86,7 +86,7 @@ int main() {
 		u32 kDown = hidKeysDown();
         
 		if (kDown & KEY_START)
-        break;
+            break;
     
         u64 currentTime = osGetTime();
         float deltaTime = (currentTime - lastTime) / 1000.0f;
@@ -112,7 +112,7 @@ int main() {
             }
             lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
         } else {
-            Clay_SetPointerState((Clay_Vector2) {-1, -1}, false);
+            Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, false);
             lastTouchPos = (Clay_Vector2) {-1.0f, -1.0f};
             Clay_UpdateScrollContainers(true, (Clay_Vector2){0.0f, 0.0f}, deltaTime);
         }
