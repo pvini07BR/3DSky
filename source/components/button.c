@@ -1,8 +1,10 @@
 #include "components/button.h"
 #include <3ds.h>
+#include "components/popup.h"
+#include "stdio.h"
 
 static void HandleButtonInteraction(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
-    if (pointerInfo.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
+    if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
         void (*onClick)(void*) = (void (*)(void*))userData;
         if (onClick != NULL) {
             onClick(NULL);

@@ -76,42 +76,44 @@ int main() {
     // Change get_login_scene() to get_main_scene() to skip the login scene
     change_scene(get_login_scene());
 
+    touchPosition tempPos = {-1};
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
 
     u64 lastTime = osGetTime();
     while(aptMainLoop()) {
         hidScanInput();
-
-        u32 kHeld = hidKeysHeld();
+        
 		u32 kDown = hidKeysDown();
-
+        
 		if (kDown & KEY_START)
-			break;
-
+        break;
+    
         touchPosition touch = {-1};
         hidTouchRead(&touch);
+        
+        if (touch.px != 0 && touch.py != 0) {
+            tempPos = touch;
+        }
 
         u64 currentTime = osGetTime();
         float deltaTime = (currentTime - lastTime) / 1000.0f;
         lastTime = currentTime;
 
-        if (kHeld & KEY_TOUCH) {
-            float touch_x = touch.px + TOP_BOTTOM_DIFF;
-            float touch_y = touch.py + TOP_HEIGHT;
+        float touch_x = tempPos.px + TOP_BOTTOM_DIFF;
+        float touch_y = tempPos.py + TOP_HEIGHT;
 
-            Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, kHeld & KEY_TOUCH);
+        Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, touch.px != 0 && touch.py != 0);
+        if (touch.px != 0 && touch.py != 0) {
             if (lastTouchPos.x != -1.0f && lastTouchPos.y != -1.0f) {
                 Clay_Vector2 scrollDelta = (Clay_Vector2) {touch_x - lastTouchPos.x, touch_y - lastTouchPos.y};
-                Clay_UpdateScrollContainers(true, scrollDelta, deltaTime);
-                lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
+                Clay_UpdateScrollContainers(true, scrollDelta, deltaTime);                
             } else {
-                lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
                 Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, deltaTime);
             }
+            lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
         } else {
-            Clay_SetPointerState((Clay_Vector2) {-100.0f, -100.0f}, false);
-            Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, deltaTime);
             lastTouchPos = (Clay_Vector2) {-1.0f, -1.0f};
+            Clay_UpdateScrollContainers(true, (Clay_Vector2){0.0f, 0.0f}, deltaTime);
         }
 
         Scene* current = get_current_scene();

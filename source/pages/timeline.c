@@ -74,7 +74,7 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     if (data == NULL) { return; }
 
     if (data->postsLoaded) {
-        if (pointerInfo.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
+        if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
             timeline_page_load_posts(data);
         }
     }

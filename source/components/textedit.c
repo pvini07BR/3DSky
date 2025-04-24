@@ -11,7 +11,7 @@ void HandleTextEditInteraction(Clay_ElementId elementId, Clay_PointerData pointe
         return;
     }
 
-    if (pointerInfo.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
+    if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
         SwkbdState swkbd;
         SwkbdButton button = SWKBD_BUTTON_NONE;
 
