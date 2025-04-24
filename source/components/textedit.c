@@ -1,9 +1,11 @@
 #include "components/textedit.h"
 #include "defines.h"
 #include <3ds.h>
-#include <3ds/applets/swkbd.h>
 #include <string.h>
 #include <stdlib.h>
+
+const Clay_Color TEXTEDIT_NORMAL_COLOR = (Clay_Color) {30, 41, 53, 255};
+const Clay_Color TEXTEDIT_HOVERED_COLOR = (Clay_Color) {40, 52, 64, 255};
 
 void HandleTextEditInteraction(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     TextEditData* data = (TextEditData*)userData;
@@ -54,7 +56,7 @@ void textedit_component(Clay_String id, TextEditData* data) {
             .childAlignment = {.y = CLAY_ALIGN_Y_CENTER },
             .sizing = {CLAY_SIZING_FIXED(TOP_WIDTH / 1.6f)}
         },
-        .backgroundColor = (Clay_Color) {30, 41, 53, 255},
+        .backgroundColor = Clay_Hovered() ? TEXTEDIT_HOVERED_COLOR : TEXTEDIT_NORMAL_COLOR,
         .cornerRadius = {.topLeft = 8 }
     }) {
         Clay_OnHover(HandleTextEditInteraction, (intptr_t)data);

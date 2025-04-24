@@ -1,7 +1,10 @@
 #include "components/button.h"
 #include <3ds.h>
-#include "components/popup.h"
 #include "stdio.h"
+
+const Clay_Color BUTTON_NORMAL_COLOR = (Clay_Color) {32, 138, 254, 255};
+const Clay_Color BUTTON_HOVERED_COLOR = (Clay_Color) {76, 162, 254, 255};
+const Clay_Color BUTTON_DISABLED_COLOR = (Clay_Color) {128, 128, 128, 255};
 
 static void HandleButtonInteraction(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
@@ -28,7 +31,7 @@ void button_component(Clay_String id, Clay_String text, bool disabled, void (*on
             },
         },
         .cornerRadius = {.topLeft = 8 },
-        .backgroundColor = disabled ? (Clay_Color) {128, 128, 128, 255} : (Clay_Color) {32, 138, 254, 255}
+        .backgroundColor = disabled ? BUTTON_DISABLED_COLOR : Clay_Hovered() ? BUTTON_HOVERED_COLOR : BUTTON_NORMAL_COLOR,
     }) {
         if (!disabled && onClick != NULL) {
             Clay_OnHover(HandleButtonInteraction, (intptr_t)onClick);

@@ -17,7 +17,7 @@ enum ConsoleMode {
     BOTTOM
 };
 
-enum ConsoleMode consoleMode = OFF;
+enum ConsoleMode consoleMode = TOP;
 
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s\n", errorData.errorText.chars);
@@ -88,6 +88,10 @@ int main() {
 		if (kDown & KEY_START)
         break;
     
+        u64 currentTime = osGetTime();
+        float deltaTime = (currentTime - lastTime) / 1000.0f;
+        lastTime = currentTime;
+        
         touchPosition touch = {-1};
         hidTouchRead(&touch);
         
@@ -95,15 +99,11 @@ int main() {
             tempPos = touch;
         }
 
-        u64 currentTime = osGetTime();
-        float deltaTime = (currentTime - lastTime) / 1000.0f;
-        lastTime = currentTime;
-
         float touch_x = tempPos.px + TOP_BOTTOM_DIFF;
         float touch_y = tempPos.py + TOP_HEIGHT;
 
-        Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, touch.px != 0 && touch.py != 0);
-        if (touch.px != 0 && touch.py != 0) {
+        if ((touch.px != 0 && touch.py != 0) || hidKeysHeld() & KEY_TOUCH || hidKeysDown() & KEY_TOUCH) {
+            Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, true);
             if (lastTouchPos.x != -1.0f && lastTouchPos.y != -1.0f) {
                 Clay_Vector2 scrollDelta = (Clay_Vector2) {touch_x - lastTouchPos.x, touch_y - lastTouchPos.y};
                 Clay_UpdateScrollContainers(true, scrollDelta, deltaTime);                
@@ -112,6 +112,7 @@ int main() {
             }
             lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
         } else {
+            Clay_SetPointerState((Clay_Vector2) {-1, -1}, false);
             lastTouchPos = (Clay_Vector2) {-1.0f, -1.0f};
             Clay_UpdateScrollContainers(true, (Clay_Vector2){0.0f, 0.0f}, deltaTime);
         }
