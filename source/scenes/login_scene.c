@@ -1,3 +1,4 @@
+#include "c2d/base.h"
 #include "sys/unistd.h"
 
 #include <citro2d.h>
