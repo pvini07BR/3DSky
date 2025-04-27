@@ -11,7 +11,15 @@ void post_component(struct Post* post) {
             .childGap = 4
         }
     }) {
-        CLAY_TEXT(CLAY_STRING("pfp"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0 }));
+        CLAY({
+            .layout = {
+                .sizing = {CLAY_SIZING_FIXED(32), CLAY_SIZING_FIXED(32)},
+            },
+            .image = {
+                .imageData = &post->avatarImage,
+                .sourceDimensions = (Clay_Dimensions) { .width = 32, .height = 32 },
+            }
+        });
         CLAY({
             .layout = {
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,

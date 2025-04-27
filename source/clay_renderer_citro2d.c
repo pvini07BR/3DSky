@@ -191,6 +191,10 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                 Clay_ImageRenderData *config = &renderCommand->renderData.image;
                 C2D_Image image = *(C2D_Image*)config->imageData;
 
+                if (image.subtex == NULL && image.tex == NULL) {
+                    break;
+                }
+
                 // Set backgroundColor on a widget with a image to change the image's color
                 // do not set to make the image render as it is
                 Clay_Color tintColor = renderCommand->renderData.image.backgroundColor;

@@ -17,7 +17,7 @@ enum ConsoleMode {
     BOTTOM
 };
 
-enum ConsoleMode consoleMode = TOP;
+enum ConsoleMode consoleMode = OFF;
 
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s\n", errorData.errorText.chars);
@@ -74,7 +74,7 @@ int main() {
     //bs_client_init("user.bsky.social", "password", NULL);
 
     // Change get_login_scene() to get_main_scene() to skip the login scene
-    change_scene(get_login_scene());
+    change_scene(get_main_scene());
 
     touchPosition tempPos = {-1};
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
@@ -160,7 +160,7 @@ int main() {
             C2D_TargetClear(bottom, C2D_Color32(22, 30, 39, 255));
             C2D_SceneBegin(bottom);
 
-            C2D_ViewTranslate(-(TOP_WIDTH - BOTTOM_WIDTH) / 2.0f, -TOP_HEIGHT);
+            C2D_ViewTranslate(-TOP_BOTTOM_DIFF, -TOP_HEIGHT);
             Clay_Citro2d_Render(&renderCommands, fonts, GFX_BOTTOM);
             C2D_ViewReset();
         }

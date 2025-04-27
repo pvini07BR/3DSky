@@ -5,7 +5,6 @@
 #include "pages/timeline.h"
 
 #include "defines.h"
-#include <stdint.h>
 
 void loadPostsThread(void* args) {
     if (args == NULL) {

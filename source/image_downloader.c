@@ -1,4 +1,5 @@
 #include "image_downloader.h"
+#include "c3d/texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
