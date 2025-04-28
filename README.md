@@ -12,6 +12,8 @@ There is already an open issue about it: https://github.com/nicbarker/clay/issue
 
 # How to compile
 
+**WARNING:** The compilation will not work if there is spaces on your directory, such as your username. Make sure the directory to this project has no spaces, otherwise it won't work.
+
 You will need to have [devkitPro](https://devkitpro.org/wiki/Getting_Started) installed.
 
 You will need these packages:
