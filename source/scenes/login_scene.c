@@ -15,8 +15,6 @@
 #include "sys/select.h"
 #include "curl/curl.h"
 
-#define CERT_FILE_PATH "/config/ssl/cacert.pem"
-
 static Scene login_scene;
 
 bool downloading_cert_file = false;
@@ -90,7 +88,7 @@ void download_cert_file_thread() {
             
             free(errorBuffer);
 
-            remove("/config/ssl/cacert.pem");
+            remove(CERT_FILE_PATH);
             errorOcurred = true;
         }
     } else {

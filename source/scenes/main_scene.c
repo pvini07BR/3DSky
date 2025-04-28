@@ -134,6 +134,8 @@ static void main_update(void) {
 }
 
 static void main_unload(void) {
+    timeline_free_data(&timelineData);
+
     if (iconsSheet) {
         C2D_SpriteSheetFree(iconsSheet);
     }

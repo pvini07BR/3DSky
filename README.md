@@ -43,3 +43,4 @@ Libraries used:
 - [Clay](https://github.com/nicbarker/clay)
 - [Jansson](https://github.com/akheron/jansson)
 - [libbluesky](https://github.com/briandowns/libbluesky)
+- [uthash](https://github.com/troydhanson/uthash)

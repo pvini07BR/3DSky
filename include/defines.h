@@ -9,4 +9,8 @@
 
 #define TOP_BOTTOM_DIFF (TOP_WIDTH - BOTTOM_WIDTH) / 2.0f
 
+#define CERT_FILE_PATH "/config/ssl/cacert.pem"
+#define APP_PATH "/3ds/3dsky/"
+#define CACHE_PATH "/3ds/3dsky/cache/"
+
 #endif

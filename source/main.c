@@ -2,7 +2,6 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <errno.h>
 
 #define CLAY_IMPLEMENTATION
 #include "clay/clay.h"
@@ -12,6 +11,8 @@
 
 #include "scenes/login_scene.h"
 #include "scenes/main_scene.h"
+
+#include "defines.h"
 
 enum ConsoleMode {
     OFF,
@@ -61,9 +62,9 @@ int main() {
         bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     }
     
-    // These directories will be needed. I hope you don't mind
-    if (mkdir("/3ds/3dsky", 0777) != 0 && errno != EEXIST) { perror("Failed creating 3dsky directory"); }
-    if (mkdir("/3ds/3dsky/cache", 0777) != 0 && errno != EEXIST) { perror("Failed creating 3dsky/cache directory"); }
+    // I don't know if those directories will be needed but there it is
+    //if (mkdir(APP_PATH, 0777) != 0 && errno != EEXIST) { perror("Failed creating 3dsky directory"); }
+    //if (mkdir(CACHE_PATH, 0777) != 0 && errno != EEXIST) { perror("Failed creating 3dsky/cache directory"); }
 
     C2D_Font fonts[2];
     fonts[0] = C2D_FontLoadSystem(CFG_REGION_USA);
