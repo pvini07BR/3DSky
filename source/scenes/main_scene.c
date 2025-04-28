@@ -22,7 +22,7 @@ C2D_Image userImage;
 
 TimelinePage timelineData = {
     .cursor = NULL,
-    .posts = {0},
+    .posts = {},
     .postsLoaded = false
 };
 
@@ -41,6 +41,20 @@ static void main_init() {
     }
 
     timeline_page_load_posts(&timelineData);
+
+    // I was testing saving downloaded images to the SD card
+    /*
+    testImg = download_image_from_url("https://assets.mcasset.cloud/1.21.5/assets/minecraft/textures/item/diamond.png");    
+    FILE *fptr = fopen("/3ds/3dsky/cache/testImg.bin", "wb");
+    if (fptr == NULL) {
+        perror("Failed to open file for writing");
+        fclose(fptr);
+        return;
+    }
+
+    fwrite(testImg.tex->data, 1, testImg.tex->width * testImg.tex->height * 4, fptr);
+    fclose(fptr);
+    */
 }
 
 static void main_layout(void) {

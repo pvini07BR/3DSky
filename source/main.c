@@ -1,6 +1,8 @@
 #include "3ds/types.h"
 #include <malloc.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #define CLAY_IMPLEMENTATION
 #include "clay/clay.h"
@@ -58,6 +60,10 @@ int main() {
         top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
         bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     }
+    
+    // These directories will be needed. I hope you don't mind
+    if (mkdir("/3ds/3dsky", 0777) != 0 && errno != EEXIST) { perror("Failed creating 3dsky directory"); }
+    if (mkdir("/3ds/3dsky/cache", 0777) != 0 && errno != EEXIST) { perror("Failed creating 3dsky/cache directory"); }
 
     C2D_Font fonts[2];
     fonts[0] = C2D_FontLoadSystem(CFG_REGION_USA);
@@ -74,7 +80,7 @@ int main() {
     //bs_client_init("user.bsky.social", "password", NULL);
 
     // Change get_login_scene() to get_main_scene() to skip the login scene
-    change_scene(get_main_scene());
+    change_scene(get_login_scene());
 
     touchPosition tempPos = {-1};
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
