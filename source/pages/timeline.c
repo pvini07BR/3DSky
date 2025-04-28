@@ -97,12 +97,7 @@ C2D_Image get_or_download_image(const char* url) {
 
     ImageCache* entry = NULL;
     HASH_FIND_STR(imageCache, url, entry);
-    if (entry) {
-        printf("Found image\n");
-        return entry->image;
-    }
-
-    printf("Image not found, downloading...\n");
+    if (entry) return entry->image;
 
     entry = (ImageCache*)malloc(sizeof(ImageCache));
     if (!entry) {
@@ -117,7 +112,7 @@ C2D_Image get_or_download_image(const char* url) {
     }
     strcpy(entry->urlKey, url);
     entry->urlKey[strlen(url)] = '\0';
-    entry->image = download_image_from_url(url);
+    entry->image = download_image_from_url(url, 32, 32);
     if (entry->image.tex == NULL && entry->image.subtex == NULL) {
         free(entry);
         return (C2D_Image){0};

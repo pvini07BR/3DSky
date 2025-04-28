@@ -2,7 +2,9 @@
 #include "c3d/texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <stb/stb_image.h>
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include <stb/stb_image_resize2.h>
 
 #include <sys/select.h>
 #include <curl/curl.h>
@@ -40,7 +42,7 @@ size_t img_mem_write_callback(void *buffer, size_t size, size_t nmemb, void *use
 	return realsize;
 }
 
-C2D_Image download_image_from_url(const char* url) {
+C2D_Image download_image_from_url(const char* url, unsigned int custom_width, unsigned int custom_height) {
     // The C2D_Image is a struct that is comprised only of pointers.
     // Therefore, it's possible to check if the image has been loaded properly by checking if they're NULL.
     C2D_Image image = {0};
@@ -97,19 +99,36 @@ C2D_Image download_image_from_url(const char* url) {
         return image;
     }
 
+    if (custom_width > 0 && custom_height > 0) {
+        stbir_resize_uint8_srgb(
+            stbi_img,
+            img_width,
+            img_height,
+            0,
+            stbi_img,
+            custom_width,
+            custom_height,
+            0,
+            STBIR_RGBA
+        );
+    }
+
+    unsigned int width_dst = (custom_width > 0 && custom_height > 0) ? custom_width : img_width;
+    unsigned int height_dst = (custom_width > 0 && custom_height > 0) ? custom_height : img_height;
+
     // The size of images on the 3DS needs to be powers of 2.
-    uint32_t wtex = next_pow2(img_width);
-    uint32_t htex = next_pow2(img_height);
+    uint32_t wtex = next_pow2(width_dst);
+    uint32_t htex = next_pow2(height_dst);
 
     // Now create the texture object
     image.tex = (C3D_Tex*)malloc(sizeof(C3D_Tex));
     Tex3DS_SubTexture* newSubtex = (Tex3DS_SubTexture*)malloc(sizeof(Tex3DS_SubTexture));
-    newSubtex->width = (u16)img_width;
-    newSubtex->height = (u16)img_height;
+    newSubtex->width = (u16)width_dst;
+    newSubtex->height = (u16)height_dst;
     newSubtex->left = 0.0f;
     newSubtex->top = 1.0f;
-    newSubtex->right = img_width / (float)wtex;
-    newSubtex->bottom = 1.0f - (img_height / (float)htex);
+    newSubtex->right = width_dst / (float)wtex;
+    newSubtex->bottom = 1.0f - (height_dst / (float)htex);
 
     image.subtex = newSubtex;
 
@@ -128,14 +147,14 @@ C2D_Image download_image_from_url(const char* url) {
     image.tex->border = 0x00FFFFFF;
 
     // And finally copy the image data to the texture
-    for(u32 y = 0; y < img_height; y++) {
-        for(u32 x = 0; x < img_width; x++) {
+    for(u32 y = 0; y < height_dst; y++) {
+        for(u32 x = 0; x < width_dst; x++) {
             // The pixel data has to be swizzled, because that's how textures are stored on the 3DS
             const u32 dst_pixel = ((((y >> 3) * (wtex >> 3) + (x >> 3)) << 6) +
                                 ((x & 1) | ((y & 1) << 1) | ((x & 2) << 1) | ((y & 2) << 2) |
                                 ((x & 4) << 2) | ((y & 4) << 3))) * 4;
 
-            const u32 src_pixel = (y * (img_width * 4)) + (x * 4);
+            const u32 src_pixel = (y * (width_dst * 4)) + (x * 4);
 
             // Images on the 3DS are in ABGR (i think)
             ((uint8_t*)image.tex->data)[dst_pixel + 0] = stbi_img[src_pixel + 3];

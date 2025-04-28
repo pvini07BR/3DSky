@@ -3,6 +3,6 @@
 
 #include <citro2d.h>
 
-C2D_Image download_image_from_url(const char* url);
+C2D_Image download_image_from_url(const char* url, unsigned int custom_wdith, unsigned int custom_height);
 
 #endif
