@@ -109,6 +109,8 @@ int main() {
         float touch_x = tempPos.px + TOP_BOTTOM_DIFF;
         float touch_y = tempPos.py + TOP_HEIGHT;
 
+        // TODO: Fix the issue of the clay pointer position staying at the last touch position when the touch is released
+        
         if ((touch.px != 0 && touch.py != 0) || hidKeysHeld() & KEY_TOUCH || hidKeysDown() & KEY_TOUCH) {
             Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, true);
             if (lastTouchPos.x != -1.0f && lastTouchPos.y != -1.0f) {

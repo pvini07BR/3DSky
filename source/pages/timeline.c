@@ -183,6 +183,7 @@ void loadPostsThread(void* args) {
     data->postsLoaded = true;
 }
 
+// TODO: Make the images load after the posts has been loaded
 void timeline_page_load_posts(TimelinePage* data) {
     if (data == NULL){return;}
     Clay_Citro2d_ClearTextCacheAndBuffer();
