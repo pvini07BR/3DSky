@@ -1,4 +1,5 @@
 #include <3ds.h>
+#include "clay/clay_renderer_citro2d.h"
 #include "bluesky/bluesky.h"
 #include "jansson.h"
 #include "uthash/uthash.h"
@@ -184,6 +185,7 @@ void loadPostsThread(void* args) {
 
 void timeline_page_load_posts(TimelinePage* data) {
     if (data == NULL){return;}
+    Clay_Citro2d_ClearTextCacheAndBuffer();
     threadCreate(loadPostsThread, data, (16 * 1024), 0x3f, -2, true);
 }
 
@@ -191,7 +193,7 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     if (userData == 0) { return; }
     TimelinePage* data = (TimelinePage*)userData;
     if (data == NULL) { return; }
-
+    
     if (data->postsLoaded) {
         if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
             timeline_page_load_posts(data);

@@ -5,5 +5,5 @@ CompileFlags:
     "-I/opt/devkitpro/devkitARM/arm-none-eabi/include/",
     "-I/opt/devkitpro/portlibs/3ds/include",
     "-I/opt/devkitpro/libctru/include",
-    "-I/win/Users/pvini/Documentos/Projetos/C-C++/3ds-clay-testing/include",
+    "-I/win/Users/pvini/Documentos/Projetos/C-C++/3DSky/include",
   ]

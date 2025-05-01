@@ -53,6 +53,7 @@ static inline Clay_Dimensions MeasureText(Clay_StringSlice text, Clay_TextElemen
 }
 
 void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* fonts, gfxScreen_t screen);
+void Clay_Citro2d_ClearTextCacheAndBuffer();
 
 void Clay_Citro2d_Deinit();
 
