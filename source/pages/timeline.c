@@ -1,126 +1,13 @@
 #include <3ds.h>
 #include "clay/clay_renderer_citro2d.h"
 #include "bluesky/bluesky.h"
+#include "components/popup.h"
 #include "jansson.h"
-#include "uthash/uthash.h"
-
 #include "pages/timeline.h"
 
-#include "image_downloader.h"
+#include "string_utils.h"
 #include "defines.h"
-
-// Implementing strdup because C99 doesn't have it lol
-char* strdup(const char* str) {
-    if (str == NULL) {
-        return NULL;
-    }
-    size_t len = strlen(str) + 1;
-    char* copy = (char*)malloc(len);
-    if (copy) {
-        memcpy(copy, str, len);
-    }
-    return copy;
-}
-
-char* replace_substring(const char* original, const char* target, const char* replacement) {
-    if (!original || !target || !replacement) {
-        return NULL;
-    }
-
-    const char* pos = strstr(original, target);
-    if (!pos) {
-        char* result = strdup(original);
-        return result;
-    }
-
-    size_t prefixLength = pos - original;
-    size_t targetLength = strlen(target);
-    size_t replacementLength = strlen(replacement);
-    size_t originalLength = strlen(original);
-
-    size_t newLength = originalLength - targetLength + replacementLength;
-    char* result = (char*)malloc(newLength + 1);
-    if (!result) {
-        perror("Error allocating memory");
-        return NULL;
-    }
-
-    strncpy(result, original, prefixLength);
-    strcpy(result + prefixLength, replacement);
-    strcpy(result + prefixLength + replacementLength, pos + targetLength);
-
-    return result;
-}
-
-char* extract_filename(const char* url) {
-    if (url == NULL) {
-        return NULL;
-    }
-
-    const char* lastSlash = strrchr(url, '/');
-    if (!lastSlash) {
-        return NULL;
-    }
-
-    lastSlash++;
-
-    const char* suffix = strstr(lastSlash, "@jpeg");
-    if (!suffix) {
-        return NULL;
-    }
-
-    size_t filenameLength = suffix - lastSlash;
-
-    char* filename = (char*)malloc(filenameLength + 1);
-    if (!filename) {
-        perror("Error allocating memory");
-        return NULL;
-    }
-
-    strncpy(filename, lastSlash, filenameLength);
-    filename[filenameLength] = '\0';
-
-    return filename;
-}
-
-typedef struct {
-    char* urlKey;
-    C2D_Image image;
-    UT_hash_handle hh;
-} ImageCache;
-
-ImageCache* imageCache = NULL;
-
-C2D_Image* get_or_download_image(const char* url) {
-    if (url == NULL) {
-        return NULL;
-    }
-
-    ImageCache* entry = NULL;
-    HASH_FIND_STR(imageCache, url, entry);
-    if (entry) return &entry->image;
-
-    entry = (ImageCache*)malloc(sizeof(ImageCache));
-    if (!entry) {
-        perror("Error allocating memory for image cache entry");
-        return NULL;
-    }
-    entry->urlKey = malloc(strlen(url) + 1);
-    if (!entry->urlKey) {
-        perror("Error allocating memory for URL key");
-        free(entry);
-        return NULL;
-    }
-    strcpy(entry->urlKey, url);
-    entry->urlKey[strlen(url)] = '\0';
-    entry->image = download_image_from_url(url, 32, 32);
-    if (entry->image.tex == NULL && entry->image.subtex == NULL) {
-        free(entry);
-        return NULL;
-    }
-    HASH_ADD_STR(imageCache, urlKey, entry);
-    return &entry->image;
-}
+#include "avatar_img_cache.h"
 
 // TODO: Try to somehow make all posts using the same avatar URL load instantly after downloading the image,
 // and then go to download the next one.
@@ -131,7 +18,7 @@ void downloadAvatarsThread(void* args) {
 
     for (int i = 0; i < 50; i++) {
         if (data->posts[i].avatarImage != NULL) continue;
-        data->posts[i].avatarImage = get_or_download_image(data->posts[i].avatarUrl);
+        data->posts[i].avatarImage = avatar_img_cache_get_or_download_image(data->posts[i].avatarUrl);
     }
 }
 
@@ -148,53 +35,63 @@ void loadPostsThread(void* args) {
         .cursor = (char*)data->cursor,
         .limit = 50
     };
+
     bs_client_response_t* response = bs_client_timeline_get(&opts);
-    if (response->err_msg == NULL && response->err_code == 0) {
-        json_error_t error;
-        json_t* root = json_loads(response->resp, 0, &error);
-        if (!root) {
-            fprintf(stderr, "Error parsing string at line %d: %s\n", error.line, error.text);
-            return;
-        }
-
-        json_t* cursor_json = json_object_get(root, "cursor");
-        if (cursor_json != NULL) {
-            data->cursor = json_string_value(cursor_json);
-        }
-
-        json_t *posts_array = json_object_get(root, "feed");
-        if (!json_is_array(posts_array)) { 
-            printf("Feed is not an array\n");
-            return;
-        }
-
-        for (size_t i = 0; i < json_array_size(posts_array); i++) {
-            if (i >= 50) { break; }
-
-            json_t* post = json_array_get(posts_array, i);
-            
-            json_t* post_data = json_object_get(post, "post");
-            json_t* author = json_object_get(post_data, "author");
-
-            data->posts[i].displayName = json_string_value(json_object_get(author, "displayName"));
-            data->posts[i].handle = json_string_value(json_object_get(author, "handle"));
-
-            json_t* record = json_object_get(post_data, "record");
-
-            data->posts[i].postText = json_string_value(json_object_get(record, "text"));
-
-            const char* avatarUrl = json_string_value(json_object_get(author, "avatar"));
-            char* avatar_thumbnail_url = replace_substring(avatarUrl, "avatar", "avatar_thumbnail");
-
-            data->posts[i].avatarUrl = avatar_thumbnail_url;
-            data->posts[i].avatarImage = NULL;
-        }
+    if (response->err_code != 0) {
+        if (response->err_msg != NULL)
+            fprintf(stderr, "Failed loading timeline: %s\n", response->err_msg);
+        
+        bs_client_response_free(response);
+        return;
     }
+                        
+    json_error_t error;
+    json_t* root = json_loads(response->resp, 0, &error);
+    if (!root) {
+        fprintf(stderr, "Error parsing string at line %d: %s\n", error.line, error.text);
+        bs_client_response_free(response);
+        return;
+    }
+
+    json_t* cursor_json = json_object_get(root, "cursor");
+    data->cursor = json_string_value(cursor_json);
+
+    json_t *posts_array = json_object_get(root, "feed");
+    if (!json_is_array(posts_array)) { 
+        fprintf(stderr, "Error: Feed is not an array.\n");
+        bs_client_response_free(response);
+        return;
+    }
+
+    for (size_t i = 0; i < json_array_size(posts_array); i++) {
+        if (i >= 50) { break; }
+
+        json_t* post = json_array_get(posts_array, i);
+        
+        json_t* post_data = json_object_get(post, "post");
+        json_t* author = json_object_get(post_data, "author");
+
+        data->posts[i].displayName = json_string_value(json_object_get(author, "displayName"));
+        data->posts[i].handle = json_string_value(json_object_get(author, "handle"));
+
+        json_t* record = json_object_get(post_data, "record");
+
+        data->posts[i].postText = json_string_value(json_object_get(record, "text"));
+
+        const char* avatarUrl = json_string_value(json_object_get(author, "avatar"));
+        char* avatar_thumbnail_url = replace_substring(avatarUrl, "avatar", "avatar_thumbnail");
+
+        data->posts[i].avatarUrl = avatar_thumbnail_url;
+        data->posts[i].avatarImage = NULL;
+    }
+
+    data->postsLoaded = true;
+    
     bs_client_response_free(response);
     // Create new thread for downloading the avatar images
     // after loading the posts.
-    threadCreate(downloadAvatarsThread, data, (16 * 1024), 0x3f, -2, true);
-    data->postsLoaded = true;
+    if (data->postsLoaded)
+        threadCreate(downloadAvatarsThread, data, (16 * 1024), 0x3f, -2, true);
 }
 
 void timeline_page_load_posts(TimelinePage* data) {
@@ -261,13 +158,6 @@ void timeline_page_layout(TimelinePage *data) {
             }
         }
     }
-}
 
-void timeline_free_data(TimelinePage* data) {
-    if (data == NULL) return;
-    ImageCache* entry, *tmp;
-    HASH_ITER(hh, imageCache, entry, tmp) {
-        HASH_DEL(imageCache, entry);
-        free(entry);
-    }
+    render_current_popup(true);
 }
