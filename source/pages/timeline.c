@@ -91,46 +91,56 @@ typedef struct {
 
 ImageCache* imageCache = NULL;
 
-C2D_Image get_or_download_image(const char* url) {
+C2D_Image* get_or_download_image(const char* url) {
     if (url == NULL) {
-        return (C2D_Image){0};
+        return NULL;
     }
 
     ImageCache* entry = NULL;
     HASH_FIND_STR(imageCache, url, entry);
-    if (entry) return entry->image;
+    if (entry) return &entry->image;
 
     entry = (ImageCache*)malloc(sizeof(ImageCache));
     if (!entry) {
         perror("Error allocating memory for image cache entry");
-        return (C2D_Image){0};
+        return NULL;
     }
     entry->urlKey = malloc(strlen(url) + 1);
     if (!entry->urlKey) {
         perror("Error allocating memory for URL key");
         free(entry);
-        return (C2D_Image){0};
+        return NULL;
     }
     strcpy(entry->urlKey, url);
     entry->urlKey[strlen(url)] = '\0';
     entry->image = download_image_from_url(url, 32, 32);
     if (entry->image.tex == NULL && entry->image.subtex == NULL) {
         free(entry);
-        return (C2D_Image){0};
+        return NULL;
     }
     HASH_ADD_STR(imageCache, urlKey, entry);
-    return entry->image;
+    return &entry->image;
 }
 
-void loadPostsThread(void* args) {
-    if (args == NULL) {
-        return;
+// TODO: Try to somehow make all posts using the same avatar URL load instantly after downloading the image,
+// and then go to download the next one.
+void downloadAvatarsThread(void* args) {
+    if (args == NULL) return;
+    TimelinePage* data = (TimelinePage*)args;
+    if (data == NULL) return;
+
+    for (int i = 0; i < 50; i++) {
+        if (data->posts[i].avatarImage != NULL) continue;
+        data->posts[i].avatarImage = get_or_download_image(data->posts[i].avatarUrl);
     }
+}
+
+// TODO: Try to optimize JSON parsing as the JSON strings returned by the Bluesky API are huge.
+void loadPostsThread(void* args) {
+    if (args == NULL) return;
 
     TimelinePage* data = (TimelinePage*)args;
-    if (data == NULL) {
-        return;
-    }
+    if (data == NULL) return;
 
     data->postsLoaded = false;
 
@@ -175,15 +185,18 @@ void loadPostsThread(void* args) {
 
             const char* avatarUrl = json_string_value(json_object_get(author, "avatar"));
             char* avatar_thumbnail_url = replace_substring(avatarUrl, "avatar", "avatar_thumbnail");
-            data->posts[i].avatarImage = get_or_download_image(avatar_thumbnail_url);
-            free(avatar_thumbnail_url);
+
+            data->posts[i].avatarUrl = avatar_thumbnail_url;
+            data->posts[i].avatarImage = NULL;
         }
     }
     bs_client_response_free(response);
+    // Create new thread for downloading the avatar images
+    // after loading the posts.
+    threadCreate(downloadAvatarsThread, data, (16 * 1024), 0x3f, -2, true);
     data->postsLoaded = true;
 }
 
-// TODO: Make the images load after the posts has been loaded
 void timeline_page_load_posts(TimelinePage* data) {
     if (data == NULL){return;}
     Clay_Citro2d_ClearTextCacheAndBuffer();

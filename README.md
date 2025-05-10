@@ -22,27 +22,36 @@ You will need these packages:
 (dkp-)pacman -S 3ds-dev 3ds-jansson 3ds-curl
 ```
 
-After that, all you have to do is run ``make`` on the project directory, and it should compile into a ``3dsky.3dsx`` file.
+Also, you might need the ``compile_commands.json`` file to get clangd autocompletion working.
+Run ``bear -- make`` to generate the file (make sure you have ``bear`` installed on your system though).
+The reason why it haven't been added in the repo is because it depends on how the program gets compiled.
 
-You can send it into your Nintendo 3DS by opening Homebrew Launcher, pressing Y, and then running on the terminal:
+By running ``bear -- make``, you will compile the program and generate ``compile_commands.json`` at the same time.
+This is the recommended approach. You only need to run it once though, then you just run ``make``.
+
+You can send the compiled file into your Nintendo 3DS by opening Homebrew Launcher, pressing Y,
+and then running on the terminal:
 ```
-3dslink -a [your 3DS IP address] 3dsky.3dsx
+3dslink -a [your 3DS IP address] 3DSky.3dsx
 ```
 
-Currently there is no way of compiling to a .cia file yet, as the program isn't finished yet. I plan on adding compiling to .cia when its more or less ready.
+Currently there is no way of compiling to a .cia file yet, as the program isn't finished yet.
+I plan on adding compiling to .cia when its more or less ready.
 
 Also, this repo comes with a .clangd file, which helps you to get code auto completion working.
-However, it's paths are set for an Linux enviroment only. If you're on Windows or any other OS, all you need to do is change the paths.
+However, it's paths are set for an Linux enviroment only. If you're on Windows or any other OS,
+all you need to do is change the paths. (I wish there was a way of setting the paths depending on the OS though)
 
-(I wish there was a way of setting the paths depending on the OS though)
-
-Also, you need the ``compile_commands.json`` file, which you can generate by running ``bear -- make`` (make sure you have ``bear`` installed on your system though). The reason why it haven't been added in the repo is because it depends on how the program gets compiled.
+But to get the auto completion fully working, you need the ``compile_commands.json`` file (as stated above).
 
 # Credits
+
+Special thanks to everyone who helped me on the [Nintendo Homebrew Discord Server](https://github.com/nh-server)
+on the #dev channel, to make this project possible.
 
 Libraries used:
 - [curl](https://github.com/curl/curl)
 - [Clay](https://github.com/nicbarker/clay)
 - [Jansson](https://github.com/akheron/jansson)
-- [libbluesky](https://github.com/briandowns/libbluesky)
+- [libbluesky](https://github.com/briandowns/libbluesky) (Had to be modified to accomodate this project's needs.)
 - [uthash](https://github.com/troydhanson/uthash)

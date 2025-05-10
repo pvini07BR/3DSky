@@ -210,11 +210,10 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
             }
             case CLAY_RENDER_COMMAND_TYPE_IMAGE: {
                 Clay_ImageRenderData *config = &renderCommand->renderData.image;
-                C2D_Image image = *(C2D_Image*)config->imageData;
+                C2D_Image* image = (C2D_Image*)config->imageData;
 
-                if (image.subtex == NULL && image.tex == NULL) {
-                    break;
-                }
+                if (image == NULL) break;
+                if (image->subtex == NULL && image->tex == NULL) break;
 
                 // Set backgroundColor on a widget with a image to change the image's color
                 // do not set to make the image render as it is
@@ -227,19 +226,19 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                 C2D_ImageTint tint;
                 C2D_PlainImageTint(&tint, ClayColor_to_C2DColor(tintColor), blend);
                 
-                float scaleX = boundingBox.width / (float)image.subtex->width;
-                float scaleY = boundingBox.height / (float)image.subtex->height;
+                float scaleX = boundingBox.width / (float)image->subtex->width;
+                float scaleY = boundingBox.height / (float)image->subtex->height;
                 
                 float scale = (scaleX < scaleY) ? scaleX : scaleY;
                 
-                float scaledWidth = (float)image.subtex->width * scale;
-                float scaledHeight = (float)image.subtex->height * scale;
+                float scaledWidth = (float)image->subtex->width * scale;
+                float scaledHeight = (float)image->subtex->height * scale;
                 
                 float x = boundingBox.x + (boundingBox.width - scaledWidth) / 2.0f;
                 float y = boundingBox.y + (boundingBox.height - scaledHeight) / 2.0f;
 
                 C2D_DrawImageAt(
-                    image,
+                    *image,
                     x,
                     y,
                     0.0f,

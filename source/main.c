@@ -1,4 +1,6 @@
+#include "3ds/romfs.h"
 #include "3ds/types.h"
+#include "c3d/renderqueue.h"
 #include <malloc.h>
 #include <stdio.h>
 #include <sys/stat.h>

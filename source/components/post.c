@@ -16,7 +16,7 @@ void post_component(struct Post* post) {
                 .sizing = {CLAY_SIZING_FIXED(32), CLAY_SIZING_FIXED(32)},
             },
             .image = {
-                .imageData = &post->avatarImage,
+                .imageData = post->avatarImage,
                 .sourceDimensions = (Clay_Dimensions) { .width = 32, .height = 32 },
             }
         });

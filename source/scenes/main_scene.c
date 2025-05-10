@@ -26,6 +26,7 @@ TimelinePage timelineData = {
     .postsLoaded = false
 };
 
+// TODO: Add more pages (notifications, chat, profile, etc.)
 static void main_init() {
     iconsSheet = C2D_SpriteSheetLoad("romfs:/icons.t3x");
     if (iconsSheet) {

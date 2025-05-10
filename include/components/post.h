@@ -8,7 +8,8 @@ struct Post {
     const char* displayName;
     const char* handle;
     const char* postText;
-    C2D_Image avatarImage;
+    const char* avatarUrl;
+    C2D_Image* avatarImage;
 };
 
 void post_component(struct Post* post);
