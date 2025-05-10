@@ -12,7 +12,8 @@ There is already an open issue about it: https://github.com/nicbarker/clay/issue
 
 # How to compile
 
-**EVEN MORE IMPORTANT WARNING:** As for 10/05/2025, the libcrtu package provided by devkitPro on pacman is **broken.**
+# EVEN MORE IMPORTANT WARNING:
+As for 10/05/2025, the libcrtu package provided by devkitPro on pacman is **broken.**
 The temporary fix is to compile [libcrtu](https://github.com/devkitPro/libctru) yourself. But it's really easy: all you have to do is cd into ``libcrtu/`` and run ``sudo -E make install``.
 
 **WARNING:** The compilation will not work if there is spaces on your directory, such as your username. Make sure the directory to this project has no spaces, otherwise it won't work.
