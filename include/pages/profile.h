@@ -5,6 +5,7 @@
 
 typedef struct {
     bool initialized;
+    bool loaded;
 
     C2D_Image* avatarImage;
     const char* displayName;

@@ -60,6 +60,7 @@ void loadProfileThread(void* args) {
     }
 
     bs_client_response_free(resp);
+    data->loaded = true;
 }
 
 void profile_page_load(ProfilePage* data, const char* handle) {
@@ -70,7 +71,7 @@ void profile_page_load(ProfilePage* data, const char* handle) {
 }
 
 void profile_page_layout(ProfilePage *data) {
-    if (data == NULL) return;
+    if (data == NULL) return; 
 
     CLAY({
         .layout = {
@@ -89,37 +90,50 @@ void profile_page_layout(ProfilePage *data) {
             .color = {46, 64, 82, 255}
         }
     }) {
-        if (data->avatarImage != NULL) {
+        if (!data->loaded) {
             CLAY({
                 .layout = {
-                .sizing = {CLAY_SIZING_FIXED(32), CLAY_SIZING_FIXED(32)},
-            },
-                .image = {
-                    .imageData = data->avatarImage,
-                    .sourceDimensions = (Clay_Dimensions) { .width = 32, .height = 32 },
+                    .sizing = {
+                        .width = CLAY_SIZING_GROW()
+                    },
+                    .childAlignment = {.x = CLAY_ALIGN_X_CENTER }
                 }
-            });
-        }
+            }) {
+                CLAY_TEXT(CLAY_STRING("Loading profile..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+            }
+        } else {
+            if (data->avatarImage != NULL) {
+                CLAY({
+                    .layout = {
+                    .sizing = {CLAY_SIZING_FIXED(32), CLAY_SIZING_FIXED(32)},
+                },
+                    .image = {
+                        .imageData = data->avatarImage,
+                        .sourceDimensions = (Clay_Dimensions) { .width = 32, .height = 32 },
+                    }
+                });
+            }
 
-        if (data->displayName != NULL) {
-            Clay_String str = (Clay_String) { .chars = data->displayName, .length = strlen(data->displayName) };
-            CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, }));
-        }
+            if (data->displayName != NULL) {
+                Clay_String str = (Clay_String) { .chars = data->displayName, .length = strlen(data->displayName) };
+                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, }));
+            }
 
-        if (data->handle != NULL) {
-            Clay_String str = (Clay_String) { .chars = data->handle, .length = strlen(data->handle) };
-            CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {128, 128, 128, 255}, .fontSize = 16, .fontId = 0, }));
-        }
+            if (data->handle != NULL) {
+                Clay_String str = (Clay_String) { .chars = data->handle, .length = strlen(data->handle) };
+                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {128, 128, 128, 255}, .fontSize = 16, .fontId = 0, }));
+            }
 
-        if (followsText != NULL) {
-            Clay_String str = (Clay_String){.chars = followsText, .length = strlen(followsText)};
-            CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, })); 
-        }
+            if (followsText != NULL) {
+                Clay_String str = (Clay_String){.chars = followsText, .length = strlen(followsText)};
+                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, })); 
+            }
 
-        if (data->description != NULL) {
-            Clay_String str = (Clay_String) { .chars = data->description, .length = strlen(data->description) };
-            CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, }));
-        }
+            if (data->description != NULL) {
+                Clay_String str = (Clay_String) { .chars = data->description, .length = strlen(data->description) };
+                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, }));
+            }
+        }        
     }
 }
 
