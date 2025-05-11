@@ -159,6 +159,9 @@ bs_client_likes_get(const char *handle, const bs_client_pagination_opts *opts);
 void
 bs_client_free();
 
+const char*
+bs_client_get_current_handle();
+
 #endif /* __BLUESKY_H */
 #ifdef __cplusplus
 }

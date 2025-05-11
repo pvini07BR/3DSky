@@ -806,3 +806,9 @@ bs_client_free()
     curl_easy_cleanup(curl);
     curl_global_cleanup();
 }
+
+const char*
+bs_client_get_current_handle()
+{
+    return cur_handle;
+}

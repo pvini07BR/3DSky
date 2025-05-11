@@ -4,6 +4,7 @@
 #include "bluesky/bluesky.h"
 
 #include "scenes/main_scene.h"
+#include "clay/clay_renderer_citro2d.h"
 #include "pages/profile.h"
 #include "pages/timeline.h"
 
@@ -41,12 +42,15 @@ Clay_Dimensions iconDimensions = {
 };
 
 TimelinePage timelineData = {
+    .initialized = false,
     .cursor = NULL,
     .posts = {},
-    .postsLoaded = false
+    .postsLoaded = false,
 };
 
 ProfilePage profileData = {
+    .initialized = false,
+
     .avatarImage = NULL,
     .description = NULL,
     .handle = NULL,
@@ -60,12 +64,17 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     Pages page = (Pages)userData;
 
     if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
+        Clay_Citro2d_ClearTextCacheAndBuffer();
+        currentPage = page;
+
         switch (page) {
         case HOME:
-            printf("Home\n");
+            if (!timelineData.initialized)
+                timeline_page_load_posts(&timelineData);
             break;
         case PROFILE:
-            printf("Profile\n");
+            if (!profileData.initialized)
+                profile_page_load(&profileData, bs_client_get_current_handle());
             break;
         default:
             show_popup_message("This has not been implemented yet!", POPUP_TYPE_MESSAGE, NULL);
@@ -147,6 +156,8 @@ static void main_layout(void) {
            
         }
     }
+
+    render_current_popup(true);
 }
 
 static void main_update(void) {

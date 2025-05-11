@@ -4,9 +4,11 @@
 #include "components/post.h"
 
 typedef struct {
+    bool initialized;
     const char* cursor;
     struct Post posts[50];
     bool postsLoaded;
+    Clay_Vector2 scrollOffset;
 } TimelinePage;
 
 void timeline_page_load_posts(TimelinePage* data);

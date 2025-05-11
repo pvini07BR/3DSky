@@ -17,20 +17,26 @@ void loadProfileThread(void* args) {
     ProfilePage* data = (ProfilePage*)args;
     if (data == NULL) return;
 
-    bs_client_response_t* response = bs_client_profile_get(data->handle);
-    if (response->err_code != 0) {
-        if (response->err_msg != NULL)
-            fprintf(stderr, "Failed loading profile: %s\n", response->err_msg);
+    bs_client_response_t* resp = bs_client_profile_get(data->handle);
+    if (resp->err_code != 0) {
+        fprintf(stderr, "An error occurred when loading the profile.\n");
+        if (resp->err_msg != NULL)
+            fprintf(stderr, "Failed loading profile: %s\n", resp->err_msg);
         
-        bs_client_response_free(response);
+        bs_client_response_free(resp);
         return;
     }
-    
+   
+    if (resp->resp == NULL) {
+        fprintf(stderr, "Error: response is null.\n");
+        return;
+    }
+
     json_error_t error;
-    json_t* root = json_loads(response->resp, 0, &error);
+    json_t* root = json_loads(resp->resp, 0, &error);
     if (!root) {
-        fprintf(stderr, "Error parsing string at line %d: %s\n", error.line, error.text);
-        bs_client_response_free(response);
+        fprintf(stderr, "Error parsing profile string at line %d: %s\n", error.line, error.text);
+        bs_client_response_free(resp);
         return;
     }
     
@@ -52,13 +58,15 @@ void loadProfileThread(void* args) {
         char* avatar_thumbnail_url = replace_substring(avatarUrl, "avatar", "avatar_thumbnail");
         data->avatarImage = avatar_img_cache_get_or_download_image(avatar_thumbnail_url);
     }
-    free(avatarUrl);
+
+    bs_client_response_free(resp);
 }
 
 void profile_page_load(ProfilePage* data, const char* handle) {
     if (data == NULL) return;
     data->handle = handle;
     threadCreate(loadProfileThread, data, (16 * 1024), 0x3f, -2, true);
+    data->initialized = true;
 }
 
 void profile_page_layout(ProfilePage *data) {

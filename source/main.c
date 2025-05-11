@@ -22,7 +22,7 @@ enum ConsoleMode {
     BOTTOM
 };
 
-enum ConsoleMode consoleMode = OFF;
+enum ConsoleMode consoleMode = TOP;
 
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s\n", errorData.errorText.chars);
@@ -80,7 +80,7 @@ int main() {
     Clay_SetMeasureTextFunction(MeasureText, &fonts);
 
     // Use this code to login if you don't want to get through the login scene over and over
-    //bs_client_init("user.bsky.social", "password", NULL);
+    // bs_client_init("user.bsky.social", "password", NULL);
 
     // Change get_login_scene() to get_main_scene() to skip the login scene
     change_scene(get_login_scene());

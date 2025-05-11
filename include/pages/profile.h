@@ -4,6 +4,8 @@
 #include <citro2d.h>
 
 typedef struct {
+    bool initialized;
+
     C2D_Image* avatarImage;
     const char* displayName;
     const char* handle;

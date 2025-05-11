@@ -1,7 +1,7 @@
 #include <3ds.h>
+#include "3ds/thread.h"
 #include "clay/clay_renderer_citro2d.h"
 #include "bluesky/bluesky.h"
-#include "components/popup.h"
 #include "jansson.h"
 #include "pages/timeline.h"
 
@@ -17,6 +17,8 @@ void downloadAvatarsThread(void* args) {
     if (data == NULL) return;
 
     for (int i = 0; i < 50; i++) {
+        if (!data->postsLoaded) break;
+
         if (data->posts[i].avatarImage != NULL) continue;
         data->posts[i].avatarImage = avatar_img_cache_get_or_download_image(data->posts[i].avatarUrl);
     }
@@ -48,7 +50,7 @@ void loadPostsThread(void* args) {
     json_error_t error;
     json_t* root = json_loads(response->resp, 0, &error);
     if (!root) {
-        fprintf(stderr, "Error parsing string at line %d: %s\n", error.line, error.text);
+        fprintf(stderr, "Error parsing timeline string at line %d: %s\n", error.line, error.text);
         bs_client_response_free(response);
         return;
     }
@@ -98,6 +100,7 @@ void timeline_page_load_posts(TimelinePage* data) {
     if (data == NULL){return;}
     Clay_Citro2d_ClearTextCacheAndBuffer();
     threadCreate(loadPostsThread, data, (16 * 1024), 0x3f, -2, true);
+    data->initialized = true;
 }
 
 void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
@@ -116,11 +119,12 @@ void timeline_page_layout(TimelinePage *data) {
     if (data == NULL) { return; }
 
     CLAY({
+        .id = CLAY_ID("timelineScroll"),
         .layout = {
             .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), CLAY_SIZING_GROW(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
             .padding = { .top = TOP_HEIGHT },
-            .childAlignment = {.x = CLAY_ALIGN_X_CENTER}
+            .childAlignment = {.x = CLAY_ALIGN_X_CENTER},
         },
         .scroll = {
             .horizontal = false,
@@ -133,7 +137,7 @@ void timeline_page_layout(TimelinePage *data) {
                 .betweenChildren = CLAY_TOP_TO_BOTTOM
             },
             .color = {46, 64, 82, 255}
-        }
+        },
     }) {
         if (!data->postsLoaded) {
             CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
@@ -158,6 +162,4 @@ void timeline_page_layout(TimelinePage *data) {
             }
         }
     }
-
-    render_current_popup(true);
 }
