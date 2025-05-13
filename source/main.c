@@ -107,8 +107,10 @@ int main() {
     switch (CUR_SCENE) {
         case LOGIN:
             change_scene(get_login_scene());
+            break;
         case MAIN:
             change_scene(get_main_scene());
+            break;
     }
 
     touchPosition tempPos = {-1};
