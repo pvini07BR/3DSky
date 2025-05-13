@@ -78,9 +78,16 @@ void profile_page_layout(ProfilePage *data) {
             .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), CLAY_SIZING_GROW(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
         },
+        /*
         .scroll = {
             .horizontal = false,
             .vertical = true,
+        },
+        */
+        .clip = {
+            .horizontal = false,
+            .vertical = true,
+            .childOffset = Clay_GetScrollOffset()
         },
         .border = {
             .width = {

@@ -3,6 +3,6 @@
 
 #include "clay/clay.h"
 
-void button_component(Clay_String id, Clay_String text, bool disabled, void (*onClick)(void*));
+void button_component(Clay_String text, bool disabled, void (*onClick)(void*));
 
 #endif

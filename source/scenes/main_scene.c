@@ -25,8 +25,9 @@ typedef enum {
 Pages currentPage = HOME;
 
 // So, there was a issue where the program would crash or the JSON strings would get messed up
-// if both the timeline and the profile were being loaded. The simplest and stupidest solution to
-// this problem was to just simply disable the nav buttons while the current page is being loaded.
+// if both the timeline and the profile were being loaded at the same time. The simplest and 
+// stupidest solution to this problem was to just simply disable the nav buttons while the
+// current page is being loaded.
 bool disableNavButtons = true;
 
 C2D_SpriteSheet iconsSheet = NULL;
@@ -68,7 +69,7 @@ ProfilePage profileData = {
 void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     Pages page = (Pages)userData;
 
-    if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME && !disableNavButtons) {
+    if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME && !disableNavButtons && page != currentPage) {
         Clay_Citro2d_ClearTextCacheAndBuffer();
         currentPage = page;
 

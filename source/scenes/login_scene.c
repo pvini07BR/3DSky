@@ -180,12 +180,12 @@ static void login_layout(void) {
                 .childGap = BOTTOM_HEIGHT / 6
             },
         }) {
-            textedit_component(CLAY_STRING("handle"), &handleData);
-            textedit_component(CLAY_STRING("password"), &passwordData);
+            textedit_component(&handleData);
+            textedit_component(&passwordData);
             if (!logging_in) {
-                button_component(CLAY_STRING("login"), CLAY_STRING("Login"), disableLogin, on_login_button_pressed);
+                button_component(CLAY_STRING("Login"), disableLogin, on_login_button_pressed);
             } else {
-                button_component(CLAY_STRING("login"), CLAY_STRING("Logging in..."), logging_in, NULL);
+                button_component(CLAY_STRING("Logging in..."), logging_in, NULL);
             }
         }
     }

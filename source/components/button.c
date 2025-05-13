@@ -15,9 +15,8 @@ static void HandleButtonInteraction(Clay_ElementId elementId, Clay_PointerData p
     }
 }
 
-void button_component(Clay_String id, Clay_String text, bool disabled, void (*onClick)(void*)) {
+void button_component(Clay_String text, bool disabled, void (*onClick)(void*)) {
     CLAY({
-        .id = CLAY_SID(id),
         .layout = {
             .padding = {
                 .top = 6,

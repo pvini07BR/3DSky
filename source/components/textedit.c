@@ -36,7 +36,7 @@ void HandleTextEditInteraction(Clay_ElementId elementId, Clay_PointerData pointe
     }
 }
 
-void textedit_component(Clay_String id, TextEditData* data) {
+void textedit_component(TextEditData* data) {
     Clay_String text = (Clay_String) { .length = strlen(data->textToEdit), .chars = data->textToEdit };
 
     if (data->isPassword) {
@@ -50,7 +50,6 @@ void textedit_component(Clay_String id, TextEditData* data) {
     }
 
     CLAY({
-        .id = CLAY_SID(id),
         .layout = {
             .padding = CLAY_PADDING_ALL(10),
             .childAlignment = {.y = CLAY_ALIGN_Y_CENTER },

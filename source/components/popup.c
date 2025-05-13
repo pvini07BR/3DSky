@@ -50,7 +50,7 @@ void popup_component(Clay_String text, bool bottomScreen) {
             }
         },
         .floating = {
-            .attachTo = CLAY_ATTACH_TO_PARENT,
+            .attachTo = CLAY_ATTACH_TO_ROOT,
             .attachPoints = {
                 .element = CLAY_ATTACH_POINT_CENTER_CENTER,
                 .parent = CLAY_ATTACH_POINT_CENTER_CENTER
@@ -88,14 +88,12 @@ void popup_component(Clay_String text, bool bottomScreen) {
                     }
                 }) {
                     button_component(
-                        CLAY_STRING("closePopup"),
                         popupType == POPUP_TYPE_CONFIRM ? CLAY_STRING("No") : CLAY_STRING("Ok"),
                         false,
                         close_popup
                     );
                     if (popupType == POPUP_TYPE_CONFIRM || popupType == POPUP_TYPE_ERROR) {
                         button_component(
-                            CLAY_STRING("confirmPopup"),
                             popupType == POPUP_TYPE_ERROR ? CLAY_STRING("Retry") : CLAY_STRING("Yes"),
                             false,
                             close_and_confirm_popup

@@ -12,7 +12,7 @@ typedef struct {
     bool disable;
 } TextEditData;
 
-void textedit_component(Clay_String id, TextEditData* data);
+void textedit_component(TextEditData* data);
 
 void HandleTextEditInteraction(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData);
 

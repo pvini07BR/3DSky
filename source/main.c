@@ -16,13 +16,34 @@
 
 #include "defines.h"
 
-enum ConsoleMode {
+typedef enum {
     OFF,
     TOP,
     BOTTOM
-};
+} ConsoleMode;
 
-enum ConsoleMode consoleMode = OFF;
+typedef enum {
+    LOGIN,
+    MAIN
+} SceneEnum;
+
+// You can change the CUR_SCENE constants to quickly get
+// to the main scene, without having to go through the login.
+//
+// To define the login, you need to uncomment the #define DEBUG_LOGIN
+// and set your handle and password below.
+//
+// DON'T FORGET TO REMOVE YOUR CREDENTIALS AFTER TESTING!!!
+
+const ConsoleMode CONSOLE_MODE = OFF;
+const SceneEnum CUR_SCENE = LOGIN;
+
+//#define DEBUG_LOGIN
+
+#ifdef DEBUG_LOGIN
+    #define DEBUG_HANDLE "user.bsky.social"
+    #define DEBUG_PASSWORD "password"
+#endif
 
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s\n", errorData.errorText.chars);
@@ -53,10 +74,10 @@ int main() {
     C3D_RenderTarget* top = NULL;
     C3D_RenderTarget* bottom = NULL;
 
-    if (consoleMode == TOP) {
+    if (CONSOLE_MODE == TOP) {
         consoleInit(GFX_TOP, NULL);
         bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
-    } else if (consoleMode == BOTTOM) {
+    } else if (CONSOLE_MODE == BOTTOM) {
         consoleInit(GFX_BOTTOM, NULL);
         top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     } else {
@@ -79,11 +100,16 @@ int main() {
     Clay_Initialize(arena, (Clay_Dimensions) { TOP_WIDTH, TOP_HEIGHT + BOTTOM_HEIGHT }, (Clay_ErrorHandler) { HandleClayErrors });
     Clay_SetMeasureTextFunction(MeasureText, &fonts);
 
-    // Use this code to login if you don't want to get through the login scene over and over
-    // bs_client_init("user.bsky.social", "password", NULL);
+    #ifdef DEBUG_LOGIN
+        bs_client_init(DEBUG_HANDLE, DEBUG_PASSWORD, NULL);
+    #endif
 
-    // Change get_login_scene() to get_main_scene() to skip the login scene
-    change_scene(get_login_scene());
+    switch (CUR_SCENE) {
+        case LOGIN:
+            change_scene(get_login_scene());
+        case MAIN:
+            change_scene(get_main_scene());
+    }
 
     touchPosition tempPos = {-1};
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};

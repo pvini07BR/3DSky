@@ -126,9 +126,11 @@ void timeline_page_layout(TimelinePage *data) {
             .padding = { .top = TOP_HEIGHT },
             .childAlignment = {.x = CLAY_ALIGN_X_CENTER},
         },
-        .scroll = {
+        .clip = {
             .horizontal = false,
             .vertical = true,
+            // TODO: Get the scroll value to be saved between pages
+            .childOffset = Clay_GetScrollOffset()
         },
         .border = {
             .width = {
@@ -162,4 +164,6 @@ void timeline_page_layout(TimelinePage *data) {
             }
         }
     }
+    
+    //data->scrollValue = Clay_GetScrollOffset();
 }
