@@ -44,6 +44,19 @@ all you need to do is change the paths. (I wish there was a way of setting the p
 
 But to get the auto completion fully working, you need the ``compile_commands.json`` file (as stated above).
 
+# Debugging
+
+On the beginning of main.c, there is a ConsoleMode variable. You can change its value to toggle between
+console on the top screen, or bottom screen, or neither.
+
+You can also provide your Bluesky login credentials to the Make arguments and go straight to the main scene,
+instead of having to go through the login scene everytime.
+
+To do that, you compile with the following command:
+```
+make LOGIN_HANDLE=user.bsky.social LOGIN_PASSWORD=yourpasswordhere
+```
+
 # Credits
 
 Special thanks to everyone who helped me on the [Nintendo Homebrew Discord Server](https://github.com/nh-server)

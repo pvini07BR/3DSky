@@ -58,6 +58,14 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 
 CFLAGS	+=	$(INCLUDE) -D__3DS__ -std=c99
 
+ifdef LOGIN_HANDLE
+    CFLAGS += -DLOGIN_HANDLE="\"$(LOGIN_HANDLE)\""
+endif
+
+ifdef LOGIN_PASSWORD
+    CFLAGS += -DLOGIN_PASSWORD="\"$(LOGIN_PASSWORD)\""
+endif
+
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++20
 
 ASFLAGS	:=	-g $(ARCH)

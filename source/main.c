@@ -1,6 +1,7 @@
 #include "3ds/romfs.h"
 #include "3ds/types.h"
 #include "c3d/renderqueue.h"
+#include "scenes/scene.h"
 #include <malloc.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -12,7 +13,9 @@
 #include "bluesky/bluesky.h"
 
 #include "scenes/login_scene.h"
-#include "scenes/main_scene.h"
+#if defined(LOGIN_HANDLE) && defined(LOGIN_PASSWORD)
+    #include "scenes/main_scene.h"
+#endif
 
 #include "defines.h"
 
@@ -22,28 +25,9 @@ typedef enum {
     BOTTOM
 } ConsoleMode;
 
-typedef enum {
-    LOGIN,
-    MAIN
-} SceneEnum;
-
-// You can change the CUR_SCENE constants to quickly get
-// to the main scene, without having to go through the login.
-//
-// To define the login, you need to uncomment the #define DEBUG_LOGIN
-// and set your handle and password below.
-//
-// DON'T FORGET TO REMOVE YOUR CREDENTIALS AFTER TESTING!!!
-
+// Change this value to either make the console appear on the top screen,
+// bottom screen or neither.
 const ConsoleMode CONSOLE_MODE = OFF;
-const SceneEnum CUR_SCENE = LOGIN;
-
-//#define DEBUG_LOGIN
-
-#ifdef DEBUG_LOGIN
-    #define DEBUG_HANDLE "user.bsky.social"
-    #define DEBUG_PASSWORD "password"
-#endif
 
 void HandleClayErrors(Clay_ErrorData errorData) {
     printf("%s\n", errorData.errorText.chars);
@@ -100,18 +84,12 @@ int main() {
     Clay_Initialize(arena, (Clay_Dimensions) { TOP_WIDTH, TOP_HEIGHT + BOTTOM_HEIGHT }, (Clay_ErrorHandler) { HandleClayErrors });
     Clay_SetMeasureTextFunction(MeasureText, &fonts);
 
-    #ifdef DEBUG_LOGIN
-        bs_client_init(DEBUG_HANDLE, DEBUG_PASSWORD, NULL);
+    #if defined(LOGIN_HANDLE) && defined(LOGIN_PASSWORD)
+        bs_client_init(LOGIN_HANDLE, LOGIN_PASSWORD, NULL);
+        change_scene(get_main_scene());
+    #else
+       change_scene(get_login_scene()); 
     #endif
-
-    switch (CUR_SCENE) {
-        case LOGIN:
-            change_scene(get_login_scene());
-            break;
-        case MAIN:
-            change_scene(get_main_scene());
-            break;
-    }
 
     touchPosition tempPos = {-1};
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
