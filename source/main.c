@@ -12,9 +12,10 @@
 
 #include "bluesky/bluesky.h"
 
-#include "scenes/login_scene.h"
 #if defined(LOGIN_HANDLE) && defined(LOGIN_PASSWORD)
     #include "scenes/main_scene.h"
+#else
+    #include "scenes/login_scene.h"
 #endif
 
 #include "defines.h"
