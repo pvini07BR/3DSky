@@ -9,6 +9,9 @@
 #include "defines.h"
 #include "avatar_img_cache.h"
 
+bool stopAvatarThread = false;
+Thread avatarThreadHnd = NULL;
+
 // TODO: Try to somehow make all posts using the same avatar URL load instantly after downloading the image,
 // and then go to download the next one.
 void downloadAvatarsThread(void* args) {
@@ -17,7 +20,7 @@ void downloadAvatarsThread(void* args) {
     if (data == NULL) return;
 
     for (int i = 0; i < 50; i++) {
-        if (!data->postsLoaded) break;
+        if (stopAvatarThread) break;
 
         if (data->posts[i].avatarImage != NULL) continue;
         data->posts[i].avatarImage = avatar_img_cache_get_or_download_image(data->posts[i].avatarUrl);
@@ -92,8 +95,10 @@ void loadPostsThread(void* args) {
     bs_client_response_free(response);
     // Create new thread for downloading the avatar images
     // after loading the posts.
-    if (data->postsLoaded)
-        threadCreate(downloadAvatarsThread, data, (16 * 1024), 0x3f, -2, true);
+    if (data->postsLoaded) {
+        stopAvatarThread = false;
+        avatarThreadHnd = threadCreate(downloadAvatarsThread, data, (16 * 1024), 0x3f, -2, true);
+    }
 }
 
 void timeline_page_load_posts(TimelinePage* data) {
@@ -110,6 +115,7 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     
     if (data->postsLoaded) {
         if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
+            timeline_stop_avatar_thread();
             timeline_page_load_posts(data);
         }
     }
@@ -177,5 +183,12 @@ void timeline_page_layout(TimelinePage *data) {
 
             data->scrollValue = scrollData.scrollPosition->y;
         }
+    }
+}
+
+void timeline_stop_avatar_thread() {
+    if (avatarThreadHnd) {
+        stopAvatarThread = true;
+        threadJoin(avatarThreadHnd, U64_MAX);
     }
 }

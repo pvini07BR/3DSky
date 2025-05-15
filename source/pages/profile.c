@@ -11,6 +11,7 @@
 #include "string_utils.h"
 
 char* followsText = NULL;
+Thread profileLoadThreadHnd;
 
 void loadProfileThread(void* args) {
     if (args == NULL) return;
@@ -66,7 +67,7 @@ void loadProfileThread(void* args) {
 void profile_page_load(ProfilePage* data, const char* handle) {
     if (data == NULL) return;
     data->handle = handle;
-    threadCreate(loadProfileThread, data, (16 * 1024), 0x3f, -2, true);
+    profileLoadThreadHnd = threadCreate(loadProfileThread, data, (16 * 1024), 0x3f, -2, true);
     data->initialized = true;
 }
 
@@ -145,5 +146,6 @@ void profile_page_layout(ProfilePage *data) {
 }
 
 void profile_page_free() {
+    threadJoin(profileLoadThreadHnd, U64_MAX);
     free(followsText);
 }
