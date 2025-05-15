@@ -4,7 +4,7 @@
 #include <citro2d.h>
 #include <stdio.h>
 #include <string.h>
-#include "bluesky/bluesky.h"
+#include "thirdparty/bluesky/bluesky.h"
 
 #include "defines.h"
 #include "scenes/main_scene.h"

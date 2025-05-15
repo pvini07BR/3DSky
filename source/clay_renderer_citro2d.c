@@ -1,8 +1,8 @@
-#include "clay/clay_renderer_citro2d.h"
+#include "thirdparty/clay/clay_renderer_citro2d.h"
 #include <stdlib.h>
 #include <string.h>
 
-#include "uthash/uthash.h"
+#include "thirdparty/uthash/uthash.h"
 
 typedef struct {
     char* text;

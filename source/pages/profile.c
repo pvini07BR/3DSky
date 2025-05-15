@@ -4,8 +4,8 @@
 
 #include "avatar_img_cache.h"
 #include "jansson.h"
-#include "clay/clay.h"
-#include "bluesky/bluesky.h"
+#include "thirdparty/clay/clay.h"
+#include "thirdparty/bluesky/bluesky.h"
 
 #include "defines.h"
 #include "string_utils.h"

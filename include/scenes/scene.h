@@ -1,7 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "clay/clay.h"
+#include "thirdparty/clay/clay.h"
 
 typedef struct {
     void (*init)(void);

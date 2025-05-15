@@ -3,7 +3,7 @@
 
 #include <citro2d.h>
 #include "3ds/gfx.h"
-#include "clay/clay.h"
+#include "thirdparty/clay/clay.h"
 
 #define GLYPH_BUFFER_SIZE 4096
 

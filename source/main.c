@@ -7,10 +7,10 @@
 #include <sys/stat.h>
 
 #define CLAY_IMPLEMENTATION
-#include "clay/clay.h"
-#include "clay/clay_renderer_citro2d.h"
+#include "thirdparty/clay/clay.h"
+#include "thirdparty/clay/clay_renderer_citro2d.h"
 
-#include "bluesky/bluesky.h"
+#include "thirdparty/bluesky/bluesky.h"
 
 #if defined(LOGIN_HANDLE) && defined(LOGIN_PASSWORD)
     #include "scenes/main_scene.h"

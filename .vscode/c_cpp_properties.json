@@ -7,10 +7,10 @@
             "cppStandard": "gnu++20",
             "intelliSenseMode": "gcc-arm",
             "includePath": [
-                "C:\\msys64\\opt\\devkitpro\\devkitARM\\arm-none-eabi\\include\\**",
-                "C:\\msys64\\opt\\devkitpro\\portlibs\\3ds\\include\\**",
-                "C:\\msys64\\opt\\devkitpro\\libctru\\include\\**",
-                "${workspaceFolder}\\include\\**"
+                "C:\\msys64\\opt\\devkitpro\\devkitARM\\arm-none-eabi\\include",
+                "C:\\msys64\\opt\\devkitpro\\portlibs\\3ds\\include",
+                "C:\\msys64\\opt\\devkitpro\\libctru\\include",
+                "${workspaceFolder}\\include"
             ],
             "compilerArgs": [
                 "-march=armv6k",

@@ -1,6 +1,6 @@
 ![https://github.com/pvini07BR/3dsky/tree](https://github.com/pvini07BR/3dsky/blob/main/gfx/3dsky-icon-alt.svg)
 
-# WARNING: This app is still in development. It doesn't do much yet.
+# WARNING: This app is still in development. It doesn't do much yet. Also expect bugs and crashes.
 
 In order to run this app, you will need a SSL certificate file. But don't worry, the app itself checks if you have that file, and if you don't, it will download it for you.
 

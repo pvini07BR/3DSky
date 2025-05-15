@@ -3,6 +3,7 @@ output/
 .cache/
 romfs/
 
+.vscode/settings.json
 compile_commands.json
 *.3dsx
 *.elf

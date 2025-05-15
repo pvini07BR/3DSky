@@ -1,7 +1,7 @@
 #ifndef TEXTEDIT_H
 #define TEXTEDIT_H
 
-#include "clay/clay.h"
+#include "thirdparty/clay/clay.h"
 #include <stdbool.h>
 
 typedef struct {

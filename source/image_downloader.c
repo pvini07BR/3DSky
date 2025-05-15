@@ -2,9 +2,9 @@
 #include "c3d/texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
+#include <thirdparty/stb/stb_image.h>
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <stb/stb_image_resize2.h>
+#include <thirdparty/stb/stb_image_resize2.h>
 
 #include <sys/select.h>
 #include <curl/curl.h>

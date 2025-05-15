@@ -1,7 +1,7 @@
 #ifndef POST_H
 #define POST_H
 
-#include "clay/clay.h"
+#include "thirdparty/clay/clay.h"
 #include <citro2d.h>
 
 struct Post {

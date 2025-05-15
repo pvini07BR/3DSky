@@ -1,7 +1,7 @@
 #ifndef POPUP_H
 #define POPUP_H
 
-#include "clay/clay.h"
+#include "thirdparty/clay/clay.h"
 #include <stdbool.h>
 
 // Message: text with an "Ok button"

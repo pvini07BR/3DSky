@@ -1,10 +1,9 @@
 #include <jansson.h>
 #include <citro2d.h>
-#include "clay/clay.h"
-#include "bluesky/bluesky.h"
+#include "thirdparty/bluesky/bluesky.h"
 
 #include "scenes/main_scene.h"
-#include "clay/clay_renderer_citro2d.h"
+#include "thirdparty/clay/clay_renderer_citro2d.h"
 #include "pages/profile.h"
 #include "pages/timeline.h"
 
@@ -70,15 +69,18 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     Pages page = (Pages)userData;
 
     if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME && !disableNavButtons && page != currentPage) {
-        Clay_Citro2d_ClearTextCacheAndBuffer();
-        currentPage = page;
-
         switch (page) {
         case HOME:
+            Clay_Citro2d_ClearTextCacheAndBuffer();
+            currentPage = page;
+
             if (!timelineData.initialized)
                 timeline_page_load_posts(&timelineData);
             break;
         case PROFILE:
+            Clay_Citro2d_ClearTextCacheAndBuffer();
+            currentPage = page;
+            
             if (!profileData.initialized)
                 profile_page_load(&profileData, bs_client_get_current_handle());
             break;
@@ -122,18 +124,27 @@ static void main_layout(void) {
             .padding = { .left = TOP_BOTTOM_DIFF - 1, .right = TOP_BOTTOM_DIFF - 1 }
         },
     }) {
-        switch (currentPage) {
-            case HOME:
-                timeline_page_layout(&timelineData);
-                break;
-            case PROFILE:
-                profile_page_layout(&profileData);
-                break;
-            default:
-                break;
+        CLAY((Clay_ElementDeclaration){
+            .layout = {
+                .sizing = {
+                    .width = CLAY_SIZING_GROW(0),
+                    .height = CLAY_SIZING_GROW(0)
+                }
+            }
+        }) {
+            switch (currentPage) {
+                case HOME:
+                    timeline_page_layout(&timelineData);
+                    break;
+                case PROFILE:
+                    profile_page_layout(&profileData);
+                    break;
+                default:
+                    break;
+            }
         }
      
-        CLAY({
+        CLAY((Clay_ElementDeclaration){
             .layout = {
                 .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_FIXED(40)},
                 .layoutDirection =CLAY_LEFT_TO_RIGHT,

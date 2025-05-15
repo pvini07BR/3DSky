@@ -1,7 +1,7 @@
 #include "avatar_img_cache.h"
 
 #include <stdlib.h>
-#include "uthash/uthash.h"
+#include "thirdparty/uthash/uthash.h"
 #include "image_downloader.h"
 
 typedef struct {

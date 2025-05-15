@@ -32,7 +32,7 @@
 #include <curl/curl.h>
 #include <jansson.h>
 
-#include "bluesky/bluesky.h"
+#include "thirdparty/bluesky/bluesky.h"
 
 #define BS_RES_JSON_HEADER "Content-Type: application/json"
 #define BS_REQ_JSON_HEADER "Accept: application/json"

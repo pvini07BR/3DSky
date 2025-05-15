@@ -1,7 +1,7 @@
 #include <3ds.h>
 #include "3ds/thread.h"
-#include "clay/clay_renderer_citro2d.h"
-#include "bluesky/bluesky.h"
+#include "thirdparty/clay/clay_renderer_citro2d.h"
+#include "thirdparty/bluesky/bluesky.h"
 #include "jansson.h"
 #include "pages/timeline.h"
 
