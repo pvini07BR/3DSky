@@ -10,6 +10,9 @@
 #include "avatar_img_cache.h"
 
 bool stopAvatarThread = false;
+bool stopPostLoadingThread = false;
+
+Thread postLoadingThreadHnd = NULL;
 Thread avatarThreadHnd = NULL;
 
 // TODO: Try to somehow make all posts using the same avatar URL load instantly after downloading the image,
@@ -23,7 +26,7 @@ void downloadAvatarsThread(void* args) {
         if (stopAvatarThread) break;
 
         if (data->posts[i].avatarImage != NULL) continue;
-        data->posts[i].avatarImage = avatar_img_cache_get_or_download_image(data->posts[i].avatarUrl);
+        data->posts[i].avatarImage = avatar_img_cache_get_or_download_image(data->posts[i].avatarUrl, 32, 32);
     }
 }
 
@@ -70,6 +73,7 @@ void loadPostsThread(void* args) {
 
     for (size_t i = 0; i < json_array_size(posts_array); i++) {
         if (i >= 50) { break; }
+        if (stopPostLoadingThread) break;
 
         json_t* post = json_array_get(posts_array, i);
         
@@ -90,12 +94,12 @@ void loadPostsThread(void* args) {
         data->posts[i].avatarImage = NULL;
     }
 
-    data->postsLoaded = true;
-    
     bs_client_response_free(response);
+    data->postsLoaded = true;
+
     // Create new thread for downloading the avatar images
     // after loading the posts.
-    if (data->postsLoaded) {
+    if (data->postsLoaded && !stopPostLoadingThread) {
         stopAvatarThread = false;
         avatarThreadHnd = threadCreate(downloadAvatarsThread, data, (16 * 1024), 0x3f, -2, true);
     }
@@ -104,7 +108,7 @@ void loadPostsThread(void* args) {
 void timeline_page_load_posts(TimelinePage* data) {
     if (data == NULL){return;}
     Clay_Citro2d_ClearTextCacheAndBuffer();
-    threadCreate(loadPostsThread, data, (16 * 1024), 0x3f, -2, true);
+    postLoadingThreadHnd = threadCreate(loadPostsThread, data, (16 * 1024), 0x3f, -2, true);
     data->initialized = true;
 }
 
@@ -124,34 +128,47 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
 void timeline_page_layout(TimelinePage *data) {
     if (data == NULL) { return; }
 
-    CLAY((Clay_ElementDeclaration){
-        .id = CLAY_ID("timelineScroll"),
-        .layout = {
-            .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), CLAY_SIZING_GROW(0)},
-            .layoutDirection = CLAY_TOP_TO_BOTTOM,
-            .padding = { .top = TOP_HEIGHT },
-            .childAlignment = {.x = CLAY_ALIGN_X_CENTER},
-        },
-        .clip = {
-            .horizontal = false,
-            .vertical = true,
-            .childOffset = {
-                .x = 0.0f,
-                .y = data->setScroll ? data->scrollValue : Clay_GetScrollOffset().y
-            }
-        },
-        .border = {
-            .width = {
-                .left = 1,
-                .right = 1,
-                .betweenChildren = CLAY_TOP_TO_BOTTOM
+    if (data->postsLoaded) {
+        CLAY((Clay_ElementDeclaration){
+            .id = CLAY_ID("timelineScroll"),
+            .layout = {
+                .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), CLAY_SIZING_GROW(0)},
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                .padding = { .top = TOP_HEIGHT-2 },
+                .childAlignment = {.x = CLAY_ALIGN_X_CENTER},
             },
-            .color = {46, 64, 82, 255}
-        },
-    }) {
-        if (!data->postsLoaded) {
-            CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
-        } else {
+            .clip = {
+                .horizontal = false,
+                .vertical = true,
+                .childOffset = {
+                    .x = 0.0f,
+                    .y = data->setScroll ? data->scrollValue : Clay_GetScrollOffset().y
+                }
+            },
+            .border = {
+                .width = {
+                    .left = 1,
+                    .right = 1,
+                    .betweenChildren = CLAY_TOP_TO_BOTTOM
+                },
+                .color = {46, 64, 82, 255}
+            },
+        }) {
+            CLAY((Clay_ElementDeclaration){
+                .layout = {
+                    .sizing = {
+                        .width = CLAY_SIZING_FIXED(BOTTOM_WIDTH),
+                        .height = CLAY_SIZING_FIXED(1)
+                    }
+                },
+                .border = {
+                    .width = {
+                        .top = 0.5
+                    },
+                    .color = {46, 64, 82, 255}
+                }
+            });
+
             for (int i = 0; i < 50; i++) {
                 if (data->posts[i].postText != NULL) {
                     post_component(&data->posts[i]);
@@ -171,6 +188,25 @@ void timeline_page_layout(TimelinePage *data) {
                 CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
             }
         }
+    } else {
+        CLAY((Clay_ElementDeclaration){
+            .layout = {
+                .sizing = {.width = CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), .height = CLAY_SIZING_GROW(0)},
+                .padding = { .top = TOP_HEIGHT },
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER},
+            },
+            .border = {
+                .width = {
+                    .left = 1,
+                    .right = 1,
+                    .betweenChildren = CLAY_TOP_TO_BOTTOM
+                },
+                .color = {46, 64, 82, 255}
+            },
+        }) {
+            CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+        }
     }
 
     Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(CLAY_ID("timelineScroll"));
@@ -183,6 +219,15 @@ void timeline_page_layout(TimelinePage *data) {
 
             data->scrollValue = scrollData.scrollPosition->y;
         }
+    }
+}
+
+void timeline_free() {
+    timeline_stop_avatar_thread();
+
+    if (postLoadingThreadHnd) {
+        stopPostLoadingThread = true;
+        threadJoin(postLoadingThreadHnd, U64_MAX);
     }
 }
 

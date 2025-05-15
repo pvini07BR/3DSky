@@ -16,5 +16,6 @@ void timeline_page_load_posts(TimelinePage* data);
 void timeline_page_layout(TimelinePage* data);
 void timeline_free_data(TimelinePage* data);
 void timeline_stop_avatar_thread();
+void timeline_free();
 
 #endif

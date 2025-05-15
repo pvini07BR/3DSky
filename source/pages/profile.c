@@ -11,7 +11,7 @@
 #include "string_utils.h"
 
 char* followsText = NULL;
-Thread profileLoadThreadHnd;
+Thread profileLoadThreadHnd = NULL;
 
 void loadProfileThread(void* args) {
     if (args == NULL) return;
@@ -57,7 +57,7 @@ void loadProfileThread(void* args) {
     const char* avatarUrl = json_string_value(json_object_get(root, "avatar"));
     if (avatarUrl != NULL) {
         char* avatar_thumbnail_url = replace_substring(avatarUrl, "avatar", "avatar_thumbnail");
-        data->avatarImage = avatar_img_cache_get_or_download_image(avatar_thumbnail_url);
+        data->avatarImage = avatar_img_cache_get_or_download_image(avatar_thumbnail_url, 64, 64);
     }
 
     bs_client_response_free(resp);
@@ -79,12 +79,6 @@ void profile_page_layout(ProfilePage *data) {
             .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), CLAY_SIZING_GROW(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
         },
-        /*
-        .scroll = {
-            .horizontal = false,
-            .vertical = true,
-        },
-        */
         .clip = {
             .horizontal = false,
             .vertical = true,
@@ -99,12 +93,13 @@ void profile_page_layout(ProfilePage *data) {
         }
     }) {
         if (!data->loaded) {
-            CLAY({
+            CLAY((Clay_ElementDeclaration){
                 .layout = {
                     .sizing = {
-                        .width = CLAY_SIZING_GROW()
+                        .width = CLAY_SIZING_GROW(),
+                        .height = CLAY_SIZING_FIXED(TOP_HEIGHT)
                     },
-                    .childAlignment = {.x = CLAY_ALIGN_X_CENTER }
+                    .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = !data->loaded ? CLAY_ALIGN_Y_CENTER : CLAY_ALIGN_Y_TOP }
                 }
             }) {
                 CLAY_TEXT(CLAY_STRING("Loading profile..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
@@ -113,11 +108,11 @@ void profile_page_layout(ProfilePage *data) {
             if (data->avatarImage != NULL) {
                 CLAY({
                     .layout = {
-                    .sizing = {CLAY_SIZING_FIXED(32), CLAY_SIZING_FIXED(32)},
+                    .sizing = {CLAY_SIZING_FIXED(data->avatarImage->subtex->width), CLAY_SIZING_FIXED(data->avatarImage->subtex->height)},
                 },
                     .image = {
                         .imageData = data->avatarImage,
-                        .sourceDimensions = (Clay_Dimensions) { .width = 32, .height = 32 },
+                        .sourceDimensions = (Clay_Dimensions) { .width = data->avatarImage->subtex->width, .height = data->avatarImage->subtex->height },
                     }
                 });
             }
@@ -146,6 +141,8 @@ void profile_page_layout(ProfilePage *data) {
 }
 
 void profile_page_free() {
-    threadJoin(profileLoadThreadHnd, U64_MAX);
+    if (profileLoadThreadHnd) {
+        threadJoin(profileLoadThreadHnd, U64_MAX);
+    }
     free(followsText);
 }

@@ -12,7 +12,7 @@ typedef struct {
 
 AvatarImgCache* imageCache = NULL;
 
-C2D_Image* avatar_img_cache_get_or_download_image(const char* url) {
+C2D_Image* avatar_img_cache_get_or_download_image(const char* url, unsigned int width, unsigned int height) {
     if (url == NULL) {
         return NULL;
     }
@@ -34,7 +34,7 @@ C2D_Image* avatar_img_cache_get_or_download_image(const char* url) {
     }
     strcpy(entry->urlKey, url);
     entry->urlKey[strlen(url)] = '\0';
-    entry->avatarImage = download_image_from_url(url, 32, 32);
+    entry->avatarImage = download_image_from_url(url, width, height);
     if (entry->avatarImage.tex == NULL && entry->avatarImage.subtex == NULL) {
         free(entry);
         return NULL;

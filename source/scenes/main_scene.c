@@ -194,7 +194,7 @@ static void main_update(void) {
 }
 
 static void main_unload(void) {
-    timeline_stop_avatar_thread();
+    timeline_free();
 
     if (iconsSheet) {
         C2D_SpriteSheetFree(iconsSheet);

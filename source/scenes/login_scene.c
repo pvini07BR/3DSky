@@ -46,6 +46,9 @@ bool disableLogin = true;
 C2D_SpriteSheet logoSpriteSheet;
 C2D_Image logoImage;
 
+Thread loginThreadHnd;
+Thread fileDownloadThreadHnd;
+
 void on_download_certificate_file_confirm();
 
 int progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
@@ -105,7 +108,7 @@ void download_cert_file_thread() {
 void on_download_certificate_file_confirm() {
     if (!downloading_cert_file) {
         show_popup_message("Downloading certificate file...", POPUP_TYPE_PROGRESS, NULL);
-        threadCreate(download_cert_file_thread, 0, (16 * 1024), 0x3f, -2, true);
+        fileDownloadThreadHnd = threadCreate(download_cert_file_thread, 0, (16 * 1024), 0x3f, -2, true);
         downloading_cert_file = true;
     }
 }
@@ -115,10 +118,10 @@ void loginThread(void *arg) {
     int code = bs_client_init(username, password, error_msg);
     if (code != 0) {
         show_popup_message(error_msg, POPUP_TYPE_MESSAGE, NULL);
-        logging_in = false;
     } else {
         login_successful = true;
     }
+    logging_in = false;
 }
 
 void on_login_button_pressed() {
@@ -133,7 +136,7 @@ void on_login_button_pressed() {
 
     logging_in = true;
     
-    threadCreate(loginThread, 0, (16 * 1024), 0x3f, -2, true);
+    loginThreadHnd = threadCreate(loginThread, 0, (16 * 1024), 0x3f, -2, true);
 }
 
 static void login_init(void) {
@@ -205,6 +208,14 @@ static void login_update(void) {
 }
 
 static void login_unload(void) {
+    if (fileDownloadThreadHnd && downloading_cert_file) {
+        threadJoin(fileDownloadThreadHnd, U64_MAX);
+    }
+
+    if (loginThreadHnd && logging_in) {
+        threadJoin(loginThreadHnd, U64_MAX);
+    }
+
     if (logoSpriteSheet) {
         C2D_SpriteSheetFree(logoSpriteSheet);
     }
