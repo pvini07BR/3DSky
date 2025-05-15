@@ -19,6 +19,7 @@
 #endif
 
 #include "defines.h"
+#include "avatar_img_cache.h"
 
 typedef enum {
     OFF,
@@ -190,6 +191,8 @@ int main() {
     if (current != NULL) {
         current->unload();
     }
+
+    avatar_img_cache_free();
 
     C2D_FontFree(fonts[0]);
 

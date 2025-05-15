@@ -22,9 +22,10 @@ You will need these packages:
 (dkp-)pacman -S 3ds-dev 3ds-jansson 3ds-curl
 ```
 
-Also, you might need the ``compile_commands.json`` file to get clangd autocompletion working.
-Run ``bear -- make`` to generate the file (make sure you have ``bear`` installed on your system though).
-The reason why it haven't been added in the repo is because it depends on how the program gets compiled.
+Also if you're going to use clangd for auto completion, you might need the ``compile_commands.json`` file
+to get clangd autocompletion working. Run ``bear -- make`` to generate the file (make sure you have ``bear``
+installed on your system though). The reason why it haven't been added in the repo is because it depends on
+how the program gets compiled.
 
 By running ``bear -- make``, you will compile the program and generate ``compile_commands.json`` at the same time.
 This is the recommended approach. You only need to run it once though, then you just run ``make``.
@@ -38,11 +39,14 @@ and then running on the terminal:
 Currently there is no way of compiling to a .cia file yet, as the program isn't finished yet.
 I plan on adding compiling to .cia when its more or less ready.
 
-Also, this repo comes with a .clangd file, which helps you to get code auto completion working.
+Also, this repo comes with a .clangd file, which helps you to get clangd auto completion working.
 However, it's paths are set for an Linux enviroment only. If you're on Windows or any other OS,
-all you need to do is change the paths. (I wish there was a way of setting the paths depending on the OS though)
+all you need to do is change the paths (I wish there was a way of setting the paths depending on the OS though).
 
 But to get the auto completion fully working, you need the ``compile_commands.json`` file (as stated above).
+
+There is also a c_cpp_properties.json file for VSCode users with the C/C++ Language Extension.
+It only supports Windows with MSYS2 for now though.
 
 # Debugging
 

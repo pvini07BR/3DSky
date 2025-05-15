@@ -51,6 +51,8 @@ TimelinePage timelineData = {
     .cursor = NULL,
     .posts = {},
     .postsLoaded = false,
+    .scrollValue = 0.0f,
+    .setScroll = false
 };
 
 ProfilePage profileData = {
@@ -71,6 +73,7 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME && !disableNavButtons && page != currentPage) {
         switch (page) {
         case HOME:
+            timelineData.setScroll = true;
             Clay_Citro2d_ClearTextCacheAndBuffer();
             currentPage = page;
 
@@ -80,7 +83,7 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
         case PROFILE:
             Clay_Citro2d_ClearTextCacheAndBuffer();
             currentPage = page;
-            
+
             if (!profileData.initialized)
                 profile_page_load(&profileData, bs_client_get_current_handle());
             break;
@@ -117,7 +120,7 @@ static void main_init() {
 }
 
 static void main_layout(void) {
-    CLAY({
+    CLAY((Clay_ElementDeclaration){
         .layout = {
             .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
@@ -159,7 +162,7 @@ static void main_layout(void) {
             .backgroundColor = {22, 30, 39, 255}
         }) {
             for (int i = 0; i < 5; i++) {
-                CLAY({
+                CLAY((Clay_ElementDeclaration){
                     .layout = iconLayout,
                     .image = {
                         .imageData = &navIcons[i],

@@ -118,7 +118,7 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
 void timeline_page_layout(TimelinePage *data) {
     if (data == NULL) { return; }
 
-    CLAY({
+    CLAY((Clay_ElementDeclaration){
         .id = CLAY_ID("timelineScroll"),
         .layout = {
             .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), CLAY_SIZING_GROW(0)},
@@ -129,8 +129,10 @@ void timeline_page_layout(TimelinePage *data) {
         .clip = {
             .horizontal = false,
             .vertical = true,
-            // TODO: Get the scroll value to be saved between pages
-            .childOffset = Clay_GetScrollOffset()
+            .childOffset = {
+                .x = 0.0f,
+                .y = data->setScroll ? data->scrollValue : Clay_GetScrollOffset().y
+            }
         },
         .border = {
             .width = {
@@ -149,7 +151,7 @@ void timeline_page_layout(TimelinePage *data) {
                     post_component(&data->posts[i]);
                 }
             }
-            CLAY({
+            CLAY((Clay_ElementDeclaration){
                 .id = CLAY_ID("load_more_button"),
                 .layout = {
                     .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW(0)},
@@ -164,6 +166,16 @@ void timeline_page_layout(TimelinePage *data) {
             }
         }
     }
-    
-    //data->scrollValue = Clay_GetScrollOffset();
+
+    Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(CLAY_ID("timelineScroll"));
+    if (scrollData.found) {
+        if (scrollData.scrollPosition != NULL) {
+            if (data->setScroll) {
+                scrollData.scrollPosition->y = data->scrollValue;
+                data->setScroll = false;
+            }
+
+            data->scrollValue = scrollData.scrollPosition->y;
+        }
+    }
 }

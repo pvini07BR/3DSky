@@ -8,6 +8,8 @@ typedef struct {
     const char* cursor;
     struct Post posts[50];
     bool postsLoaded;
+    float scrollValue;
+    bool setScroll;
 } TimelinePage;
 
 void timeline_page_load_posts(TimelinePage* data);
