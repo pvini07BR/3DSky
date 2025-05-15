@@ -1,0 +1,32 @@
+{
+    "configurations": [
+        {
+            "name": "3DS (MSYS2)",
+            "compilerPath": "C:\\msys64\\opt\\devkitpro\\devkitARM\\bin\\arm-none-eabi-gcc.exe",
+            "cStandard": "c99",
+            "cppStandard": "gnu++20",
+            "intelliSenseMode": "gcc-arm",
+            "includePath": [
+                "C:\\msys64\\opt\\devkitpro\\devkitARM\\arm-none-eabi\\include\\**",
+                "C:\\msys64\\opt\\devkitpro\\portlibs\\3ds\\include\\**",
+                "C:\\msys64\\opt\\devkitpro\\libctru\\include\\**",
+                "${workspaceFolder}\\include\\**"
+            ],
+            "compilerArgs": [
+                "-march=armv6k",
+                "-mtune=mpcore",
+                "-mfloat-abi=hard",
+                "-mtp=soft",
+                "-g",
+                "-Wall",
+                "-O2",
+                "-mword-relocations",
+                "-ffunction-sections"
+            ],
+            "defines": [
+                "__3DS__"
+            ]
+        }
+    ],
+    "version": 4
+}
