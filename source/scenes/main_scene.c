@@ -166,8 +166,8 @@ static void main_layout(void) {
                     .layout = iconLayout,
                     .image = {
                         .imageData = &navIcons[i],
-                        .sourceDimensions = iconDimensions,
                     },
+                    .aspectRatio = { iconDimensions.width / iconDimensions.height },
                     .backgroundColor = disableNavButtons ? (Clay_Color){128, 128, 128, 255} : (Clay_Color){255, 255, 255, 255}
                 }) {
                     Clay_OnHover(handleNavButton, i);

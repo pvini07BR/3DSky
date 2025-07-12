@@ -168,8 +168,8 @@ static void login_layout(void) {
                 .layout = { .sizing = { .width = CLAY_SIZING_FIXED(256), .height = CLAY_SIZING_FIXED(128) }},
                 .image = {
                     .imageData = &logoImage,
-                    .sourceDimensions = (Clay_Dimensions){.width = 256, .height = 128},
-                }
+                 },
+                 .aspectRatio = { 256.0f / 128.0f }
             });
         }
         CLAY({

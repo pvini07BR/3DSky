@@ -17,8 +17,8 @@ void post_component(struct Post* post) {
             },
             .image = {
                 .imageData = post->avatarImage,
-                .sourceDimensions = (Clay_Dimensions) { .width = 32, .height = 32 },
-            }
+            },
+            .aspectRatio = { 32.0f / 32.0f }
         });
         CLAY({
             .layout = {

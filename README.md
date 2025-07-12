@@ -61,6 +61,14 @@ To do that, you compile with the following command:
 make LOGIN_HANDLE=user.bsky.social LOGIN_PASSWORD=yourpasswordhere
 ```
 
+NOTE: If you have compiled a .3dsx file before, you may have to delete that previous file before compiling again,
+so it will take the effects of the login credentials. It's recommended to run this command to clean all previously
+compiled files:
+
+```
+make clean
+```
+
 # Credits
 
 Special thanks to everyone who helped me on the [Nintendo Homebrew Discord Server](https://github.com/nh-server)

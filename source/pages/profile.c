@@ -112,8 +112,8 @@ void profile_page_layout(ProfilePage *data) {
                 },
                     .image = {
                         .imageData = data->avatarImage,
-                        .sourceDimensions = (Clay_Dimensions) { .width = data->avatarImage->subtex->width, .height = data->avatarImage->subtex->height },
-                    }
+                    },
+                    .aspectRatio = { (float)data->avatarImage->subtex->width / (float)data->avatarImage->subtex->height }
                 });
             }
 

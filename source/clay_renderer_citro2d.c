@@ -225,6 +225,21 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                 }
                 C2D_ImageTint tint;
                 C2D_PlainImageTint(&tint, ClayColor_to_C2DColor(tintColor), blend);
+
+                float scaleX = boundingBox.width / (float)image->subtex->width;
+                float scaleY = boundingBox.height / (float)image->subtex->height;
+
+                C2D_DrawImageAt(
+                    *image,
+                    boundingBox.x,
+                    boundingBox.y,
+                    0.0f,
+                    &tint,
+                    scaleX,
+                    scaleY
+                );
+
+                /*
                 
                 float scaleX = boundingBox.width / (float)image->subtex->width;
                 float scaleY = boundingBox.height / (float)image->subtex->height;
@@ -246,6 +261,7 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                     scale,
                     scale
                 );
+                */
             } break;
             default:
                 break;
