@@ -143,28 +143,6 @@ int main() {
 
         if (current != NULL) current->layout();
 
-        // I was trying to do FPS on here but the text gets glitched for some reason
-        /*
-        CLAY({
-            .floating = {
-                .attachTo = CLAY_ATTACH_TO_ROOT,
-                .attachPoints = {
-                    .element = CLAY_ATTACH_POINT_LEFT_TOP,
-                    .parent = CLAY_ATTACH_POINT_LEFT_TOP
-                }
-            }
-        }) {
-            int size = snprintf(NULL, 0, "FPS: %.2f", 1.0f / deltaTime);
-            char *tempBuf = malloc(size + 1);
-            if (tempBuf){
-                sprintf(tempBuf, "FPS: %.2f", 1.0f / deltaTime);
-                Clay_String str = (Clay_String){.chars = tempBuf, .length = size};
-                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0 }));
-                free(tempBuf);
-            }
-        }
-        */
-
         Clay_RenderCommandArray renderCommands = Clay_EndLayout();
 
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);

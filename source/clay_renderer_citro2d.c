@@ -14,6 +14,8 @@ typedef struct {
 TextCache* textCache = NULL;
 
 static C2D_TextBuf textBuf = NULL;
+//static int totalCharCount = 0;
+
 //static char *temp_render_buffer = NULL;
 //static int temp_render_buffer_len = 0;
 
@@ -327,6 +329,8 @@ void Clay_Citro2d_ClearTextCacheAndBuffer() {
     }
     if (textBuf != NULL) {
         C2D_TextBufClear(textBuf);
+        //totalCharCount = 0;
+        //textBuf = C2D_TextBufResize(textBuf, totalCharCount);
     }
 }
 

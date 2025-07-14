@@ -107,7 +107,6 @@ void loadPostsThread(void* args) {
 
 void timeline_page_load_posts(TimelinePage* data) {
     if (data == NULL){return;}
-    Clay_Citro2d_ClearTextCacheAndBuffer();
     postLoadingThreadHnd = threadCreate(loadPostsThread, data, (16 * 1024), 0x3f, -2, true);
     data->initialized = true;
 }
@@ -120,6 +119,7 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     if (data->postsLoaded) {
         if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
             timeline_stop_avatar_thread();
+            Clay_Citro2d_ClearTextCacheAndBuffer();
             timeline_page_load_posts(data);
         }
     }
@@ -163,7 +163,7 @@ void timeline_page_layout(TimelinePage *data) {
                 },
                 .border = {
                     .width = {
-                        .top = 0.5
+                        .top = 0
                     },
                     .color = {46, 64, 82, 255}
                 }
