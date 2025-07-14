@@ -7,6 +7,7 @@
 typedef struct {
     Clay_String hintText;
     char* textToEdit;
+    char* obfuscatedText;
     bool isPassword;
     int maxLength;
     bool disable;

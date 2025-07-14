@@ -5,7 +5,7 @@
 #include "3ds/gfx.h"
 #include "thirdparty/clay/clay.h"
 
-#define GLYPH_BUFFER_SIZE 4096
+#define GLYPH_BUFFER_SIZE 8192
 
 #define TOP_WIDTH 400
 #define TOP_HEIGHT 240

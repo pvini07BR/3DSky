@@ -24,6 +24,7 @@ bool login_successful = false;
 
 static char username[80];
 static char password[80];
+static char obfuscated_password[80];
 
 TextEditData handleData = { 
     .hintText = CLAY_STRING("Enter your username handle"), 
@@ -35,7 +36,8 @@ TextEditData handleData = {
 
 TextEditData passwordData = { 
     .hintText = CLAY_STRING("Enter your password"), 
-    .textToEdit = password, 
+    .textToEdit = password,
+    .obfuscatedText = obfuscated_password,
     .isPassword = true,
     .maxLength = 80,
     .disable = false

@@ -32,21 +32,25 @@ void HandleTextEditInteraction(Clay_ElementId elementId, Clay_PointerData pointe
 
         if (button == SWKBD_BUTTON_CONFIRM) {
             strcpy(data->textToEdit, tempBuf);
+
+            if (data->isPassword) {
+                strcpy(data->obfuscatedText, data->textToEdit);
+
+                for (int i = 0; i < strlen(data->obfuscatedText); i++) {
+                    data->obfuscatedText[i] = '*';
+                }
+            }
         }
     }
 }
 
 void textedit_component(TextEditData* data) {
-    Clay_String text = (Clay_String) { .length = strlen(data->textToEdit), .chars = data->textToEdit };
+    Clay_String text;
 
-    if (data->isPassword) {
-        char* masked = malloc(text.length);
-        if (masked != NULL) {
-            for (int i = 0; i < text.length; i++) {
-                masked[i] = '*';
-            }
-            text.chars = masked;
-        }
+    if (data->isPassword && data->obfuscatedText != NULL) {
+        text = (Clay_String){ .length = strlen(data->obfuscatedText), .chars = data->obfuscatedText };
+    } else {
+        text = (Clay_String){ .length = strlen(data->textToEdit), .chars = data->textToEdit };
     }
 
     CLAY({
