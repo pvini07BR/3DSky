@@ -177,7 +177,7 @@ static void main_layout(void) {
         }
     }
 
-    render_current_popup(true);
+    popup_layout(true);
 }
 
 static void main_update(void) {

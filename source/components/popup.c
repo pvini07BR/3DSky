@@ -8,8 +8,9 @@
 
 static enum PopupType popupType = POPUP_TYPE_MESSAGE;
 
-static char* popup_message_text = NULL;
-static size_t popup_message_length = 0;
+static char* popup_text = NULL;
+static int popup_text_length = 0;
+
 static bool show_popup_flag = false;
 
 static void (*popup_on_confirm)(void*) = NULL;
@@ -19,11 +20,6 @@ static float progress_bar_value = 0.0f;
 void close_popup(void* args) {
     show_popup_flag = false;
     progress_bar_value = 0.0f;
-    if (popup_message_text) {
-        free(popup_message_text);
-        popup_message_text = NULL;
-        popup_message_length = 0;
-    }
 }
 
 void close_and_confirm_popup(void* args) {
@@ -34,7 +30,9 @@ void close_and_confirm_popup(void* args) {
     }
 }
 
-void popup_component(Clay_String text, bool bottomScreen) {
+void popup_layout(bool bottomScreen) {
+    if (!show_popup_flag) return;
+
     CLAY({
         .layout = {
             .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
@@ -75,7 +73,15 @@ void popup_component(Clay_String text, bool bottomScreen) {
             .cornerRadius = {.topLeft = 8 },
             .backgroundColor = {30, 41, 53, 255}
         }) {
-            CLAY_TEXT(text, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 16, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+            if (popup_text != NULL) {
+                Clay_String str = (Clay_String) {
+                    .chars = popup_text,
+                    .length = popup_text_length,
+                    .isStaticallyAllocated = false
+                };
+
+                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 16, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+            }
             if (popupType != POPUP_TYPE_PROGRESS) {
                 CLAY({
                     .layout = {
@@ -143,22 +149,20 @@ void show_popup_message(const char* message, enum PopupType type, void (*onConfi
         return;
     }
 
-    size_t new_length = strlen(message);
-    char *new_message = malloc(new_length + 1);
-    if (!new_message) {
+    if (popup_text != NULL) {
+        free(popup_text);
+    }
+
+    popup_text_length = strlen(message);
+    popup_text = malloc(popup_text_length + 1);
+    if (!popup_text) {
         fprintf(stderr, "Error: Failed to allocate memory for the popup text.\n");
         return;
     }
 
-    strncpy(new_message, message, new_length);
-    new_message[new_length] = '\0';
+    strncpy(popup_text, message, popup_text_length);
+    popup_text[popup_text_length] = '\0';
 
-    if (popup_message_text) {
-        free(popup_message_text);
-    }
-
-    popup_message_text = new_message;
-    popup_message_length = new_length;
     show_popup_flag = true;
     popupType = type;
     popup_on_confirm = onConfirm;
@@ -175,11 +179,4 @@ void popup_set_progress_bar(float value) {
 
 bool is_popup_visible(void) {
     return show_popup_flag;
-}
-
-void render_current_popup(bool bottomScreen) {
-    if (show_popup_flag && popup_message_text) {
-        Clay_String popup_text = { .length = popup_message_length, .chars = popup_message_text };
-        popup_component(popup_text, bottomScreen);
-    }
 }

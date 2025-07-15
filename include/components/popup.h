@@ -16,11 +16,10 @@ enum PopupType {
 };
 
 void close_popup(void* args);
-void popup_component(Clay_String text, bool bottomScreen);
+void popup_layout(bool bottomScreen);
 // The onConfirm function pointer is going to be used for both the confirm and error popups
 void show_popup_message(const char* message, enum PopupType type, void (*onConfirm)(void*));
 bool is_popup_visible(void);
-void render_current_popup(bool bottomScreen);
 
 void popup_set_progress_bar(float value);
 

@@ -2,6 +2,7 @@
 #include "sys/unistd.h"
 
 #include <citro2d.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include "thirdparty/bluesky/bluesky.h"
@@ -84,20 +85,23 @@ void download_cert_file_thread() {
         fclose(pagefile);
 
         if (ret != CURLE_OK) {
-            size_t buffer_size = strlen("Error at downloading cert file: ") + strlen(curl_easy_strerror(ret)) + 1;
-            
+            size_t buffer_size = strlen("Error when downloading cert file: ") + strlen(curl_easy_strerror(ret)) + 1;
             char* errorBuffer = malloc(buffer_size);
-
             snprintf(errorBuffer, buffer_size, "Error at downloading cert file: %s", curl_easy_strerror(ret));
             show_popup_message(errorBuffer, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
-            
             free(errorBuffer);
 
             remove(CERT_FILE_PATH);
             errorOcurred = true;
         }
     } else {
-        show_popup_message("Error opening file to download", POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
+        char* error_msg = strerror(errno);
+        size_t buffer_size = strlen("Error when opening file to download: ") + strlen(error_msg) + 1;
+        char* errorBuffer = malloc(buffer_size);
+        snprintf(errorBuffer, buffer_size, "Error when opening file to download: %s", error_msg);
+        show_popup_message(errorBuffer, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
+        free(errorBuffer);
+
         errorOcurred = true;
     }
     
@@ -116,10 +120,14 @@ void on_download_certificate_file_confirm() {
 }
 
 void loginThread(void *arg) {
-    char error_msg[256];
-    int code = bs_client_init(username, password, error_msg);
+    char bs_error_msg[256];
+    int code = bs_client_init(username, password, bs_error_msg);
     if (code != 0) {
-        show_popup_message(error_msg, POPUP_TYPE_MESSAGE, NULL);
+        size_t buffer_size = strlen("Error when trying to log in: ") + strlen(bs_error_msg) + 1;
+        char* errorBuffer = malloc(buffer_size);
+        snprintf(errorBuffer, buffer_size, "Error when trying to log in: %s", bs_error_msg);
+        show_popup_message(errorBuffer, POPUP_TYPE_MESSAGE, NULL);
+        free(errorBuffer);
     } else {
         login_successful = true;
     }
@@ -195,7 +203,7 @@ static void login_layout(void) {
         }
     }
 
-    render_current_popup(true);
+    popup_layout(true);
 }
 
 static void login_update(void) {
