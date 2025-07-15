@@ -14,11 +14,7 @@ typedef struct {
 
 TextCacheEntry* textCache = NULL;
 
-static C2D_TextBuf textBuf = NULL;
-//static int totalCharCount = 0;
-
-//static char *temp_render_buffer = NULL;
-//static int temp_render_buffer_len = 0;
+static C2D_TextBuf textGlyphBuffer = NULL;
 
 uint32_t hash_slice(const char *slice, size_t len) {
     uint32_t hash = 5381;
@@ -28,7 +24,7 @@ uint32_t hash_slice(const char *slice, size_t len) {
     return hash;
 }
 
-C2D_Text *get_cached_text(C2D_Font fontToUse, const char *slice, size_t len) {
+C2D_Text* get_cached_text(C2D_Font fontToUse, const char *slice, size_t len) {
     char key[16];
     snprintf(key, sizeof(key), "%08x", hash_slice(slice, len));
 
@@ -45,11 +41,13 @@ C2D_Text *get_cached_text(C2D_Font fontToUse, const char *slice, size_t len) {
     memcpy(temp_buf, slice, len);
     temp_buf[len] = '\0';
 
-    if (textBuf == NULL) {
-        textBuf = C2D_TextBufNew(4096);
+    if (textGlyphBuffer == NULL) {
+        textGlyphBuffer = C2D_TextBufNew(GLYPH_BUFFER_SIZE);
     }
-    C2D_TextFontParse(&entry->obj, fontToUse, textBuf, temp_buf);
+    C2D_TextFontParse(&entry->obj, fontToUse, textGlyphBuffer, temp_buf);
     C2D_TextOptimize(&entry->obj);
+
+    //printf("New text object: %s\nUsed glyphs: %d\n", temp_buf, C2D_TextBufGetNumGlyphs(textBuf));
 
     free(temp_buf);
 
@@ -87,7 +85,7 @@ void Clay_Citro2d_Init() {
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
 
-    textBuf = C2D_TextBufNew(GLYPH_BUFFER_SIZE);
+    textGlyphBuffer = C2D_TextBufNew(GLYPH_BUFFER_SIZE);
 }
 
 u32 ClayColor_to_C2DColor(Clay_Color color) {
@@ -289,16 +287,16 @@ void Clay_Citro2d_ClearTextCacheAndBuffer() {
         free(entry->key);
         free(entry);
     }
-    if (textBuf) {
-        C2D_TextBufClear(textBuf);
+    if (textGlyphBuffer) {
+        C2D_TextBufClear(textGlyphBuffer);
     }
 }
 
 void Clay_Citro2d_Deinit() {
     Clay_Citro2d_ClearTextCacheAndBuffer();
 
-    if (textBuf != NULL) {
-        C2D_TextBufDelete(textBuf);
+    if (textGlyphBuffer != NULL) {
+        C2D_TextBufDelete(textGlyphBuffer);
     }
     C2D_Fini();
     C3D_Fini();
