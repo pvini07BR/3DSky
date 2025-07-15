@@ -9,8 +9,6 @@
 
 #include "components/popup.h"
 
-#include "defines.h"
-
 static Scene main_scene;
 
 typedef enum {
@@ -113,7 +111,7 @@ static void main_init() {
             timeline_page_load_posts(&timelineData);
             break;
         case PROFILE:
-            profile_page_load(&profileData, "pvini07br.bsky.social");
+            profile_page_load(&profileData, bs_client_get_current_handle());
         default:
             break;
     };
@@ -124,9 +122,9 @@ static void main_layout(void) {
         .layout = {
             .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
-            .padding = { .left = TOP_BOTTOM_DIFF - 1, .right = TOP_BOTTOM_DIFF - 1 }
         },
     }) {
+        // Page layout
         CLAY((Clay_ElementDeclaration){
             .layout = {
                 .sizing = {
@@ -147,10 +145,11 @@ static void main_layout(void) {
             }
         }
      
+        // Nav bar
         CLAY((Clay_ElementDeclaration){
             .layout = {
                 .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_FIXED(40)},
-                .layoutDirection =CLAY_LEFT_TO_RIGHT,
+                .layoutDirection = CLAY_LEFT_TO_RIGHT,
                 .childAlignment = {
                     .x = CLAY_ALIGN_X_CENTER,
                     .y = CLAY_ALIGN_Y_CENTER

@@ -1,5 +1,6 @@
 #include <3ds.h>
 #include "3ds/thread.h"
+#include "scenes/scene.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
 #include "thirdparty/bluesky/bluesky.h"
 #include "jansson.h"
@@ -128,13 +129,23 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
 void timeline_page_layout(TimelinePage *data) {
     if (data == NULL) { return; }
 
-    if (data->postsLoaded) {
+    CLAY({
+        .layout = {
+            .layoutDirection = CLAY_LEFT_TO_RIGHT
+        }
+    }) {
+        CLAY({
+            .layout = {
+                .sizing = { CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF-1), CLAY_SIZING_GROW(0) }
+            }
+        });
+
         CLAY((Clay_ElementDeclaration){
             .id = CLAY_ID("timelineScroll"),
             .layout = {
                 .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), CLAY_SIZING_GROW(0)},
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                .padding = { .top = TOP_HEIGHT-2 },
+                .padding = { .top = TOP_HEIGHT-1 },
                 .childAlignment = {.x = CLAY_ALIGN_X_CENTER},
             },
             .clip = {
@@ -168,44 +179,37 @@ void timeline_page_layout(TimelinePage *data) {
                     .color = {46, 64, 82, 255}
                 }
             });
-
-            for (int i = 0; i < 50; i++) {
-                if (data->posts[i].postText != NULL) {
-                    post_component(&data->posts[i]);
+            
+            if (data->postsLoaded) {
+                for (int i = 0; i < 50; i++) {
+                    if (data->posts[i].postText != NULL) {
+                        post_component(&data->posts[i]);
+                    }
+                }
+                CLAY((Clay_ElementDeclaration){
+                    .id = CLAY_ID("load_more_button"),
+                    .layout = {
+                        .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW(0)},
+                        .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                        .padding = { .bottom = 10, .top = 10 },
+                        .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER}
+                    },
+                    .border = {.width = {.top = 1}, .color = {46, 64, 82, 255}}
+                }) {
+                    Clay_OnHover(onLoadMorePosts, (uintptr_t)data);
+                    CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+                }
+            } else {
+                CLAY({
+                    .layout = {
+                        .sizing = {CLAY_SIZING_GROW(), CLAY_SIZING_FIXED(BOTTOM_HEIGHT-40)},
+                        .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                        .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER},
+                    },
+                }) {
+                    CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
                 }
             }
-            CLAY((Clay_ElementDeclaration){
-                .id = CLAY_ID("load_more_button"),
-                .layout = {
-                    .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW(0)},
-                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                    .padding = { .bottom = 10, .top = 10 },
-                    .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER}
-                },
-                .border = {.width = {.top = 1}, .color = {46, 64, 82, 255}}
-            }) {
-                Clay_OnHover(onLoadMorePosts, (uintptr_t)data);
-                CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
-            }
-        }
-    } else {
-        CLAY((Clay_ElementDeclaration){
-            .layout = {
-                .sizing = {.width = CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), .height = CLAY_SIZING_GROW(0)},
-                .padding = { .top = TOP_HEIGHT },
-                .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER},
-            },
-            .border = {
-                .width = {
-                    .left = 1,
-                    .right = 1,
-                    .betweenChildren = CLAY_TOP_TO_BOTTOM
-                },
-                .color = {46, 64, 82, 255}
-            },
-        }) {
-            CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
         }
     }
 

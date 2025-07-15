@@ -76,21 +76,9 @@ void profile_page_layout(ProfilePage *data) {
 
     CLAY({
         .layout = {
-            .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), CLAY_SIZING_GROW(0)},
+            .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_FIXED(TOP_HEIGHT)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
         },
-        .clip = {
-            .horizontal = false,
-            .vertical = true,
-            .childOffset = Clay_GetScrollOffset()
-        },
-        .border = {
-            .width = {
-                .left = 1,
-                .right = 1,
-            },
-            .color = {46, 64, 82, 255}
-        }
     }) {
         if (!data->loaded) {
             CLAY((Clay_ElementDeclaration){
@@ -136,6 +124,34 @@ void profile_page_layout(ProfilePage *data) {
                 Clay_String str = (Clay_String) { .chars = data->description, .length = strlen(data->description) };
                 CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, }));
             }
+
+            /*
+            CLAY({
+                .layout = {
+                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                    .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW(0)},
+                },
+                .clip = {
+                    .vertical = true,
+                    .horizontal = false,
+                    .childOffset = {
+                        .x = 0.0f,
+                        .y = Clay_GetScrollOffset().y
+                    }
+                }
+            }) {
+                for (int i = 0; i < 50; i++) {
+                    CLAY_TEXT(
+                        CLAY_STRING("THIS IS A TEST"),
+                        CLAY_TEXT_CONFIG({
+                            .textColor = {255, 255, 255, 255},
+                            .fontSize = 15,
+                            .fontId = 0
+                        })
+                    );
+                }
+            }
+            */
         }        
     }
 }
