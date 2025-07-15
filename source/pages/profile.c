@@ -76,56 +76,75 @@ void profile_page_layout(ProfilePage *data) {
 
     CLAY({
         .layout = {
-            .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_FIXED(TOP_HEIGHT)},
+            .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_GROW()},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
         },
     }) {
-        if (!data->loaded) {
-            CLAY((Clay_ElementDeclaration){
-                .layout = {
-                    .sizing = {
-                        .width = CLAY_SIZING_GROW(),
-                        .height = CLAY_SIZING_FIXED(TOP_HEIGHT)
-                    },
-                    .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = !data->loaded ? CLAY_ALIGN_Y_CENTER : CLAY_ALIGN_Y_TOP }
-                }
-            }) {
-                CLAY_TEXT(CLAY_STRING("Loading profile..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+        CLAY({
+            .layout = {
+                .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_FIXED(TOP_HEIGHT) },
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
             }
-        } else {
-            if (data->avatarImage != NULL) {
-                CLAY({
+        }) {
+            if (!data->loaded) {
+                CLAY((Clay_ElementDeclaration){
                     .layout = {
-                    .sizing = {CLAY_SIZING_FIXED(data->avatarImage->subtex->width), CLAY_SIZING_FIXED(data->avatarImage->subtex->height)},
-                },
-                    .image = {
-                        .imageData = data->avatarImage,
+                        .sizing = {
+                            .width = CLAY_SIZING_GROW(),
+                            .height = CLAY_SIZING_FIXED(TOP_HEIGHT)
+                        },
+                        .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = !data->loaded ? CLAY_ALIGN_Y_CENTER : CLAY_ALIGN_Y_TOP }
+                    }
+                }) {
+                    CLAY_TEXT(CLAY_STRING("Loading profile..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+                }
+            } else {
+                if (data->avatarImage != NULL) {
+                    CLAY({
+                        .layout = {
+                        .sizing = {CLAY_SIZING_FIXED(data->avatarImage->subtex->width), CLAY_SIZING_FIXED(data->avatarImage->subtex->height)},
                     },
-                    .aspectRatio = { (float)data->avatarImage->subtex->width / (float)data->avatarImage->subtex->height }
-                });
+                        .image = {
+                            .imageData = data->avatarImage,
+                        },
+                        .aspectRatio = { (float)data->avatarImage->subtex->width / (float)data->avatarImage->subtex->height }
+                    });
+                }
+    
+                if (data->displayName != NULL) {
+                    Clay_String str = (Clay_String) { .chars = data->displayName, .length = strlen(data->displayName) };
+                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, }));
+                }
+    
+                if (data->handle != NULL) {
+                    Clay_String str = (Clay_String) { .chars = data->handle, .length = strlen(data->handle) };
+                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {128, 128, 128, 255}, .fontSize = 16, .fontId = 0, }));
+                }
+    
+                if (followsText != NULL) {
+                    Clay_String str = (Clay_String){.chars = followsText, .length = strlen(followsText)};
+                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, })); 
+                }
+    
+                if (data->description != NULL) {
+                    Clay_String str = (Clay_String) { .chars = data->description, .length = strlen(data->description) };
+                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, }));
+                }
             }
+        }
 
-            if (data->displayName != NULL) {
-                Clay_String str = (Clay_String) { .chars = data->displayName, .length = strlen(data->displayName) };
-                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, }));
+        CLAY({
+            .layout = {
+                .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_GROW() },
+                .layoutDirection = CLAY_LEFT_TO_RIGHT
             }
+        }) {
+            CLAY({
+                .layout = {
+                    .sizing = { CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF), CLAY_SIZING_GROW() }
+                }
+            });
 
-            if (data->handle != NULL) {
-                Clay_String str = (Clay_String) { .chars = data->handle, .length = strlen(data->handle) };
-                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {128, 128, 128, 255}, .fontSize = 16, .fontId = 0, }));
-            }
-
-            if (followsText != NULL) {
-                Clay_String str = (Clay_String){.chars = followsText, .length = strlen(followsText)};
-                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, })); 
-            }
-
-            if (data->description != NULL) {
-                Clay_String str = (Clay_String) { .chars = data->description, .length = strlen(data->description) };
-                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, }));
-            }
-
-            /*
             CLAY({
                 .layout = {
                     .layoutDirection = CLAY_TOP_TO_BOTTOM,
@@ -151,8 +170,7 @@ void profile_page_layout(ProfilePage *data) {
                     );
                 }
             }
-            */
-        }        
+        }
     }
 }
 
