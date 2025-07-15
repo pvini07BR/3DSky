@@ -123,9 +123,9 @@ void loginThread(void *arg) {
     char bs_error_msg[256];
     int code = bs_client_init(username, password, bs_error_msg);
     if (code != 0) {
-        size_t buffer_size = strlen("Error when trying to log in: ") + strlen(bs_error_msg) + 1;
+        size_t buffer_size = strlen("Error when trying to log in: ") + strlen(bs_error_msg) + strlen("\n\nPlease make sure your handle and password are correct.") + 1;
         char* errorBuffer = malloc(buffer_size);
-        snprintf(errorBuffer, buffer_size, "Error when trying to log in: %s", bs_error_msg);
+        snprintf(errorBuffer, buffer_size, "Error when trying to log in: %s\n\nPlease make sure your handle and password are correct.", bs_error_msg);
         show_popup_message(errorBuffer, POPUP_TYPE_MESSAGE, NULL);
         free(errorBuffer);
     } else {
@@ -136,7 +136,7 @@ void loginThread(void *arg) {
 
 void on_login_button_pressed() {
     if (strlen(username) == 0 || strlen(password) == 0) {
-        show_popup_message("Error: Username or password is empty", POPUP_TYPE_MESSAGE, NULL);
+        show_popup_message("Username or password cannot be empty.", POPUP_TYPE_MESSAGE, NULL);
         return;
     }
     
@@ -156,7 +156,7 @@ static void login_init(void) {
     }
     
     if (access(CERT_FILE_PATH, F_OK) != 0) {
-        show_popup_message("It seems the certificate file (cacert.pem) needed for this app was not found.\nWould you like to download it?", POPUP_TYPE_CONFIRM, on_download_certificate_file_confirm);
+        show_popup_message("It seems the certificate file (cacert.pem) needed for this app was not found. Would you like to download it?", POPUP_TYPE_CONFIRM, on_download_certificate_file_confirm);
     }
     #if defined(LOGIN_HANDLE) && defined(LOGIN_PASSWORD)
     else {
