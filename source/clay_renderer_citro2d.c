@@ -3,21 +3,60 @@
 #include <string.h>
 
 #include "c2d/text.h"
+#include "string_utils.h"
 #include "thirdparty/uthash/uthash.h"
 
 typedef struct {
-    const char* text;
+    char* key;
     C2D_Text obj;
     UT_hash_handle hh;
-} TextCache;
+} TextCacheEntry;
 
-TextCache* textCache = NULL;
+TextCacheEntry* textCache = NULL;
 
 static C2D_TextBuf textBuf = NULL;
 //static int totalCharCount = 0;
 
 //static char *temp_render_buffer = NULL;
 //static int temp_render_buffer_len = 0;
+
+uint32_t hash_slice(const char *slice, size_t len) {
+    uint32_t hash = 5381;
+    for (size_t i = 0; i < len; i++) {
+        hash = ((hash << 5) + hash) + (uint8_t)slice[i];
+    }
+    return hash;
+}
+
+C2D_Text *get_cached_text(C2D_Font fontToUse, const char *slice, size_t len) {
+    char key[16];
+    snprintf(key, sizeof(key), "%08x", hash_slice(slice, len));
+
+    TextCacheEntry *entry = NULL;
+    HASH_FIND_STR(textCache, key, entry);
+    if (entry) {
+        return &entry->obj;
+    }
+
+    entry = malloc(sizeof(TextCacheEntry));
+    entry->key = strdup(key);
+
+    char *temp_buf = malloc(len + 1);
+    memcpy(temp_buf, slice, len);
+    temp_buf[len] = '\0';
+
+    if (textBuf == NULL) {
+        textBuf = C2D_TextBufNew(4096);
+    }
+    C2D_TextFontParse(&entry->obj, fontToUse, textBuf, temp_buf);
+    C2D_TextOptimize(&entry->obj);
+
+    free(temp_buf);
+
+    HASH_ADD_KEYPTR(hh, textCache, entry->key, strlen(entry->key), entry);
+
+    return &entry->obj;
+}
 
 bool is_visible(gfxScreen_t screen, Clay_BoundingBox boundingBox) {
     float x = boundingBox.x;
@@ -111,106 +150,29 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                 C2D_Font fontToUse = fonts[textData->fontId];
                 FINF_s* finfo = C2D_FontGetInfo(fontToUse);
 
-                TextCache* entry = NULL;
-                HASH_FIND_STR(textCache, textData->stringContents.chars, entry);
-                if (entry == NULL && textBuf != NULL) {
-                    entry = (TextCache*)malloc(sizeof(TextCache));
-                    entry->text = textData->stringContents.chars;
-
-                    char temp_buf[textData->stringContents.length + 1];
-                    memcpy(temp_buf, textData->stringContents.chars, textData->stringContents.length);
-                    temp_buf[textData->stringContents.length] = '\0';
-
-                    C2D_TextFontParse(
-                        &entry->obj,
-                        fontToUse,
-                        textBuf,
-                        temp_buf
-                    );
-                    C2D_TextOptimize(&entry->obj);
-                    
-                    HASH_ADD_STR(textCache, text, entry);
-
-                    //printf("New text object: %s\nGlyph count:%d\n", temp_buf, C2D_TextBufGetNumGlyphs(textBuf));
-                }
-
-                if (entry == NULL) {
-                    break;
-                }
-
-                C2D_DrawText(
-                    &entry->obj,
-                    C2D_WithColor,
-                    boundingBox.x,
-                    boundingBox.y,
-                    0.0f,
-                    (float)renderCommand->renderData.text.fontSize / (float)finfo->height,
-                    (float)renderCommand->renderData.text.fontSize / (float)finfo->height,
-                    C2D_Color32(
-                        renderCommand->renderData.text.textColor.r,
-                        renderCommand->renderData.text.textColor.g,
-                        renderCommand->renderData.text.textColor.b,
-                        renderCommand->renderData.text.textColor.a
-                    )
+                C2D_Text *text_obj = get_cached_text(
+                    fontToUse,
+                    textData->stringContents.chars,
+                    textData->stringContents.length
                 );
 
-                /*
-                Clay_TextRenderData* textData = &renderCommand->renderData.text;
-                C2D_Font fontToUse = fonts[textData->fontId];
-                FINF_s* finfo = C2D_FontGetInfo(fontToUse);
-                
-                int slen = textData->stringContents.length + 1;
-                
-                if(slen > temp_render_buffer_len) {
-                    if(temp_render_buffer) free(temp_render_buffer);
-                    temp_render_buffer = (char*)malloc(slen);
-                    temp_render_buffer_len = slen;
-                }
-                memcpy(temp_render_buffer, textData->stringContents.chars, textData->stringContents.length);
-                temp_render_buffer[textData->stringContents.length] = '\0';
-
-                TextCache* entry = NULL;
-                HASH_FIND_STR(textCache, temp_render_buffer, entry);
-                if (entry == NULL && textBuf != NULL) {
-                    entry = (TextCache*)malloc(sizeof(TextCache));
-                    entry->text = malloc(slen);
-                    memcpy(entry->text, temp_render_buffer, slen);
-
-                    if (C2D_TextBufGetNumGlyphs(textBuf) >= GLYPH_BUFFER_SIZE) {
-                        textBuf = C2D_TextBufResize(textBuf, C2D_TextBufGetNumGlyphs(textBuf) + slen);
-                    }
-                    
-                    C2D_TextFontParse(
-                        &entry->obj,
-                        fontToUse,
-                        textBuf,
-                        temp_render_buffer
+                if (text_obj) {
+                    C2D_DrawText(
+                        text_obj,
+                        C2D_WithColor,
+                        boundingBox.x,
+                        boundingBox.y,
+                        0.0f,
+                        (float)renderCommand->renderData.text.fontSize / (float)finfo->height,
+                        (float)renderCommand->renderData.text.fontSize / (float)finfo->height,
+                        C2D_Color32(
+                            renderCommand->renderData.text.textColor.r,
+                            renderCommand->renderData.text.textColor.g,
+                            renderCommand->renderData.text.textColor.b,
+                            renderCommand->renderData.text.textColor.a
+                        )
                     );
-                    C2D_TextOptimize(&entry->obj);
-                    
-                    HASH_ADD_STR(textCache, text, entry);
                 }
-
-                if (entry == NULL) {
-                    break;
-                }
-
-                C2D_DrawText(
-                    &entry->obj,
-                    C2D_WithColor,
-                    boundingBox.x,
-                    boundingBox.y,
-                    0.0f,
-                    (float)renderCommand->renderData.text.fontSize / (float)finfo->height,
-                    (float)renderCommand->renderData.text.fontSize / (float)finfo->height,
-                    C2D_Color32(
-                        renderCommand->renderData.text.textColor.r,
-                        renderCommand->renderData.text.textColor.g,
-                        renderCommand->renderData.text.textColor.b,
-                        renderCommand->renderData.text.textColor.a
-                    )
-                );
-                */
             } break;
             case CLAY_RENDER_COMMAND_TYPE_BORDER: {
                 Clay_BorderRenderData *config = &renderCommand->renderData.border;
@@ -321,29 +283,19 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
 }
 
 void Clay_Citro2d_ClearTextCacheAndBuffer() {
-    TextCache *currentCache, *tmpCache;
-    HASH_ITER(hh, textCache, currentCache, tmpCache) {
-        HASH_DEL(textCache, currentCache);
-        //free(currentCache->text);
-        free(currentCache);
+    TextCacheEntry *entry, *tmp;
+    HASH_ITER(hh, textCache, entry, tmp) {
+        HASH_DEL(textCache, entry);
+        free(entry->key);
+        free(entry);
     }
-    if (textBuf != NULL) {
+    if (textBuf) {
         C2D_TextBufClear(textBuf);
-        //totalCharCount = 0;
-        //textBuf = C2D_TextBufResize(textBuf, totalCharCount);
     }
 }
 
 void Clay_Citro2d_Deinit() {
-    TextCache *currentCache, *tmpCache;
-
-    HASH_ITER(hh, textCache, currentCache, tmpCache) {
-        HASH_DEL(textCache, currentCache);
-        //free(currentCache->text);
-        free(currentCache);
-    }
-
-    //if(temp_render_buffer) free(temp_render_buffer);
+    Clay_Citro2d_ClearTextCacheAndBuffer();
 
     if (textBuf != NULL) {
         C2D_TextBufDelete(textBuf);
