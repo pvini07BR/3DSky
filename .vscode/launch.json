@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Attach to gdbserver",
+            "executable": "3DSky.elf",
+            "target": "192.168.100.13:4003",
+            "remote": true,
+            "cwd": "${workspaceRoot}", 
+            "gdbpath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gdb",
+            "autorun": [
+                //"any gdb commands to initiate your environment, if it is needed"
+            ],
+            "pathSubstitutions": {
+                "/home/davem/projects/devkitpro/pacman-packages/libctru/src/libctru-2.6.2": "/home/pvini07br/Downloads/libctru-2.6.2",
+                "/home/fincs/git/pacman-packages/citro2d/src/citro2d-1.6.0": "/home/pvini07br/Downloads/citro2d-1.6.0",
+                "/home/davem/projects/devkitpro/pacman-packages/citro3d/src/citro3d-1.7.1": "/home/pvini07br/Downloads/citro3d-1.7.1",
+            }
+        }
+    ]
+}
