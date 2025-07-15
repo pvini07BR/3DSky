@@ -2,7 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "3ds/gfx.h"
+#include "3ds/gpu/enums.h"
+#include "c2d/base.h"
 #include "c2d/text.h"
+#include "c3d/base.h"
+#include "defines.h"
 #include "string_utils.h"
 #include "thirdparty/uthash/uthash.h"
 
@@ -56,11 +61,11 @@ C2D_Text* get_cached_text(C2D_Font fontToUse, const char *slice, size_t len) {
     return &entry->obj;
 }
 
-bool is_visible(gfxScreen_t screen, Clay_BoundingBox boundingBox) {
-    float x = boundingBox.x;
-    float y = boundingBox.y;
-    float width = boundingBox.width;
-    float height = boundingBox.height;
+bool is_visible(gfxScreen_t screen, Clay_BoundingBox* boundingBox) {
+    float x = boundingBox->x;
+    float y = boundingBox->y;
+    float width = boundingBox->width;
+    float height = boundingBox->height;
 
     bool isVisibleHorizontally = false;
     bool isVisibleVertically = false;
@@ -76,6 +81,26 @@ bool is_visible(gfxScreen_t screen, Clay_BoundingBox boundingBox) {
     }
 
     return isVisibleHorizontally && isVisibleVertically;
+}
+
+void SetScissor(GPU_SCISSORMODE mode, gfxScreen_t screen, Clay_BoundingBox* boundingBox) {
+    int x = boundingBox->x;
+    int y = boundingBox->y;
+
+    if (screen == GFX_BOTTOM) {
+        x -= TOP_BOTTOM_DIFF;
+        y -= TOP_HEIGHT;
+    }
+
+    int inv_y = screen == GFX_TOP ? TOP_HEIGHT - (y + boundingBox->height) : BOTTOM_HEIGHT - (y + boundingBox->height);
+    int inv_x = screen == GFX_TOP ? TOP_WIDTH - (x + boundingBox->width) : BOTTOM_WIDTH - (x + boundingBox->width);
+    
+    C3D_SetScissor(mode,
+        inv_y,                              // left (Y min)
+        inv_x,                              // top (X min)
+        inv_y + boundingBox->height,     // right (Y max)
+        inv_x + boundingBox->width     // bottom (X max)
+    );
 }
 
 void Clay_Citro2d_Init() {
@@ -97,7 +122,7 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
         Clay_RenderCommand* renderCommand = &renderCommands->internalArray[i];
         Clay_BoundingBox boundingBox = renderCommand->boundingBox;
 
-        if (!is_visible(screen, boundingBox)) {
+        if (!is_visible(screen, &boundingBox)) {
             continue;
         }
 
@@ -249,30 +274,14 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                     scaleX,
                     scaleY
                 );
-
-                /*
-                
-                float scaleX = boundingBox.width / (float)image->subtex->width;
-                float scaleY = boundingBox.height / (float)image->subtex->height;
-                
-                float scale = (scaleX < scaleY) ? scaleX : scaleY;
-                
-                float scaledWidth = (float)image->subtex->width * scale;
-                float scaledHeight = (float)image->subtex->height * scale;
-                
-                float x = boundingBox.x + (boundingBox.width - scaledWidth) / 2.0f;
-                float y = boundingBox.y + (boundingBox.height - scaledHeight) / 2.0f;
-
-                C2D_DrawImageAt(
-                    *image,
-                    x,
-                    y,
-                    0.0f,
-                    &tint,
-                    scale,
-                    scale
-                );
-                */
+            } break;
+            
+            // TODO: Try to implement scissor
+            case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START: {
+                //SetScissor(GPU_SCISSOR_NORMAL, screen, &boundingBox);
+            } break;
+            case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END: {
+                //SetScissor(GPU_SCISSOR_DISABLE, screen, &boundingBox);
             } break;
             default:
                 break;
