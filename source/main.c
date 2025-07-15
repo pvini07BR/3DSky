@@ -12,11 +12,7 @@
 
 #include "thirdparty/bluesky/bluesky.h"
 
-#if defined(LOGIN_HANDLE) && defined(LOGIN_PASSWORD)
-    #include "scenes/main_scene.h"
-#else
-    #include "scenes/login_scene.h"
-#endif
+#include "scenes/login_scene.h"
 
 #include "defines.h"
 #include "avatar_img_cache.h"
@@ -86,12 +82,7 @@ int main() {
     Clay_Initialize(arena, (Clay_Dimensions) { TOP_WIDTH, TOP_HEIGHT + BOTTOM_HEIGHT }, (Clay_ErrorHandler) { HandleClayErrors });
     Clay_SetMeasureTextFunction(MeasureText, &fonts);
 
-    #if defined(LOGIN_HANDLE) && defined(LOGIN_PASSWORD)
-        bs_client_init(LOGIN_HANDLE, LOGIN_PASSWORD, NULL);
-        change_scene(get_main_scene());
-    #else
-       change_scene(get_login_scene()); 
-    #endif
+    change_scene(get_login_scene()); 
 
     touchPosition tempPos = {-1};
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};

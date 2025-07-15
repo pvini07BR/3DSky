@@ -44,7 +44,7 @@ TextEditData passwordData = {
     .disable = false
 };
 
-bool disableLogin = true;
+bool disableLogin = false;
 
 C2D_SpriteSheet logoSpriteSheet;
 C2D_Image logoImage;
@@ -139,7 +139,7 @@ void on_login_button_pressed() {
         show_popup_message("Error: Username or password is empty", POPUP_TYPE_MESSAGE, NULL);
         return;
     }
-
+    
     if (disableLogin) {
         return;
     }
@@ -158,6 +158,13 @@ static void login_init(void) {
     if (access(CERT_FILE_PATH, F_OK) != 0) {
         show_popup_message("It seems the certificate file (cacert.pem) needed for this app was not found.\nWould you like to download it?", POPUP_TYPE_CONFIRM, on_download_certificate_file_confirm);
     }
+    #if defined(LOGIN_HANDLE) && defined(LOGIN_PASSWORD)
+    else {
+        strcpy(username, LOGIN_HANDLE);
+        strcpy(password, LOGIN_PASSWORD);
+        on_login_button_pressed();
+    }
+    #endif
 }
 
 static void login_layout(void) {
