@@ -149,7 +149,7 @@ void timeline_page_layout(TimelinePage *data) {
                 .childAlignment = {.x = CLAY_ALIGN_X_CENTER},
             },
             .clip = {
-                .horizontal = false,
+                .horizontal = true,
                 .vertical = true,
                 .childOffset = {
                     .x = 0.0f,

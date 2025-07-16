@@ -152,9 +152,11 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
         Clay_RenderCommand* renderCommand = &renderCommands->internalArray[i];
         Clay_BoundingBox boundingBox = renderCommand->boundingBox;
 
-        if (!is_visible(screen, &boundingBox)) {
+        /*
+        if (!is_visible(screen, &boundingBox) && (renderCommand->renderData.clip.horizontal || renderCommand->renderData.clip.vertical)) {
             continue;
         }
+        */
 
         switch(renderCommand->commandType) {
             case CLAY_RENDER_COMMAND_TYPE_RECTANGLE: {
@@ -308,10 +310,10 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
             
             // TODO: Try to implement scissor
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START: {
-                //BeginScissor(screen, &boundingBox);
+                BeginScissor(screen, &boundingBox);
             } break;
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END: {
-                //EndScissor();
+                EndScissor();
             } break;
             default:
                 break;

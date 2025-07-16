@@ -74,12 +74,14 @@ void profile_page_load(ProfilePage* data, const char* handle) {
 void profile_page_layout(ProfilePage *data) {
     if (data == NULL) return; 
 
+    // Profile information layout on the top and posts on the bottom
     CLAY({
         .layout = {
             .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_GROW()},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
         },
     }) {
+        // Profile info
         CLAY({
             .layout = {
                 .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_FIXED(TOP_HEIGHT) },
@@ -135,20 +137,29 @@ void profile_page_layout(ProfilePage *data) {
 
         CLAY({
             .layout = {
+                .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_FIXED(10) }
+            }
+        });
+
+        // Temp layout for translating the posts to the bottom
+        CLAY({
+            .layout = {
                 .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_GROW() },
                 .layoutDirection = CLAY_LEFT_TO_RIGHT
             }
         }) {
+            // Empty space to push the posts to fit in the bottom screen
             CLAY({
                 .layout = {
                     .sizing = { CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF), CLAY_SIZING_GROW() }
                 }
             });
 
+            // Where the posts will be
             CLAY({
                 .layout = {
                     .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                    .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_FIXED(BOTTOM_HEIGHT/2.0f)},
+                    .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW()},
                 },
                 .clip = {
                     .vertical = true,

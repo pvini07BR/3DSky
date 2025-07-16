@@ -158,7 +158,6 @@ static void main_layout(void) {
                 .padding = {.left = 5, .right = 10}
             },
             .border = {.width = {.top= 1 }, .color = {46, 64, 82, 255}},
-            .backgroundColor = {22, 30, 39, 255}
         }) {
             for (int i = 0; i < 5; i++) {
                 CLAY((Clay_ElementDeclaration){
@@ -172,7 +171,6 @@ static void main_layout(void) {
                     Clay_OnHover(handleNavButton, i);
                 }
             }
-           
         }
     }
 
