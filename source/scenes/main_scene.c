@@ -210,7 +210,7 @@ static void main_layout(void) {
 static void main_update(void) {
     switch(currentPage) {
         case HOME:
-            disableNavButtons = !timeline_has_loaded_posts(&timelineData);
+            disableNavButtons = !timelineData.feed.loaded;
             break;
         case PROFILE:
             disableNavButtons = !profileData.loaded;
@@ -221,7 +221,8 @@ static void main_update(void) {
 }
 
 static void main_unload(void) {
-    timeline_free();
+    timeline_free(&timelineData);
+    profile_page_free();
 
     if (iconsSheet) {
         C2D_SpriteSheetFree(iconsSheet);
@@ -229,8 +230,6 @@ static void main_unload(void) {
     if (otherIconsSheet) {
         C2D_SpriteSheetFree(otherIconsSheet);
     }
-
-    profile_page_free();
 }
 
 Scene* get_main_scene(void) {

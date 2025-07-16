@@ -1,4 +1,5 @@
 #include "components/post.h"
+#include <stdlib.h>
 #include <string.h>
 #include "defines.h"
 
@@ -48,5 +49,22 @@ void post_component(Post* post) {
                 })
             );
         }
+    }
+}
+
+void post_free(Post *post) {
+    if (post == NULL) return;
+
+    if (post->displayName) {
+        free(post->displayName);
+    }
+    if (post->handle) {
+        free(post->handle);
+    }
+    if (post->postText) {
+        free(post->postText);
+    }
+    if (post->avatarUrl) {
+        free(post->avatarUrl);
     }
 }

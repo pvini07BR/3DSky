@@ -1,13 +1,21 @@
 #include "components/feed.h"
 
+#include "components/post.h"
 #include "jansson.h"
 #include "string_utils.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
 
+Thread feedLoadThreadHnd = NULL;
+bool stopFeedLoadingThread = false;
+
 void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData);
 void feed_load_posts(Feed* feed, json_t *root);
 
-void feed_load_timeline(Feed *feed) {
+void timeline_loading_thread(void* args) {
+    if (args == NULL) return;
+    Feed* feed = (Feed*)args;
+    if (feed == NULL) return;
+
     feed->type = FEED_TYPE_TIMELINE;
     feed->loaded = false;
 
@@ -34,6 +42,10 @@ void feed_load_timeline(Feed *feed) {
     feed->loaded = true;
 }
 
+void feed_load_timeline(Feed* feed) {
+    feedLoadThreadHnd = threadCreate(timeline_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
+}
+
 void feed_load_posts(Feed* feed, json_t* root) {
     json_t* cursor_json = json_object_get(root, "cursor");
 
@@ -55,6 +67,7 @@ void feed_load_posts(Feed* feed, json_t* root) {
 
     for (size_t i = 0; i < json_array_size(posts_array); i++) {
         if (i >= 50) break;
+        if (stopFeedLoadingThread) break;
 
         if (feed->posts[i].displayName) {
             free(feed->posts[i].displayName);
@@ -207,5 +220,16 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
                 } break;
             }
         }
+    }
+}
+
+void feed_free(Feed *feed) {
+    if (feedLoadThreadHnd) {
+        stopFeedLoadingThread = true;
+        threadJoin(feedLoadThreadHnd, U64_MAX);
+    }
+
+    for (int i = 0; i < 50; i++) {
+        post_free(&feed->posts[i]);
     }
 }

@@ -2,7 +2,6 @@
 #define FEED_H
 
 #include "components/post.h"
-#include "jansson.h"
 #include "thirdparty/bluesky/bluesky.h"
 
 typedef enum {
@@ -21,5 +20,6 @@ typedef struct {
 
 void feed_load_timeline(Feed* feed);
 void feed_layout(Feed* feed);
+void feed_free(Feed* feed);
 
 #endif

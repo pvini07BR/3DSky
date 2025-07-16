@@ -13,5 +13,6 @@ typedef struct {
 } Post;
 
 void post_component(Post* post);
+void post_free(Post* post);
 
 #endif
