@@ -148,7 +148,7 @@ void profile_page_layout(ProfilePage *data) {
             CLAY({
                 .layout = {
                     .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                    .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW(0)},
+                    .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_FIXED(BOTTOM_HEIGHT/2.0f)},
                 },
                 .clip = {
                     .vertical = true,

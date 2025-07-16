@@ -83,24 +83,54 @@ bool is_visible(gfxScreen_t screen, Clay_BoundingBox* boundingBox) {
     return isVisibleHorizontally && isVisibleVertically;
 }
 
-void SetScissor(GPU_SCISSORMODE mode, gfxScreen_t screen, Clay_BoundingBox* boundingBox) {
+void BeginScissor(gfxScreen_t screen, Clay_BoundingBox* boundingBox) {
+    const int SCREEN_WIDTH = screen == GFX_TOP ? TOP_WIDTH : BOTTOM_WIDTH;
+    const int SCREEN_HEIGHT = screen == GFX_TOP ? TOP_HEIGHT : BOTTOM_HEIGHT;
+
     int x = boundingBox->x;
     int y = boundingBox->y;
+    int width = boundingBox->width;
+    int height = boundingBox->height;
 
-    if (screen == GFX_BOTTOM) {
-        x -= TOP_BOTTOM_DIFF;
-        y -= TOP_HEIGHT;
-    }
+    C2D_Flush();
 
-    int inv_y = screen == GFX_TOP ? TOP_HEIGHT - (y + boundingBox->height) : BOTTOM_HEIGHT - (y + boundingBox->height);
-    int inv_x = screen == GFX_TOP ? TOP_WIDTH - (x + boundingBox->width) : BOTTOM_WIDTH - (x + boundingBox->width);
+    if (is_visible(screen, boundingBox)) {
+        if (screen == GFX_BOTTOM) {
+            x -= TOP_BOTTOM_DIFF;
+            y -= TOP_HEIGHT;
+        }
     
-    C3D_SetScissor(mode,
-        inv_y,                              // left (Y min)
-        inv_x,                              // top (X min)
-        inv_y + boundingBox->height,     // right (Y max)
-        inv_x + boundingBox->width     // bottom (X max)
-    );
+        if ((x + width) > SCREEN_WIDTH) {
+            width = SCREEN_WIDTH - x;
+        }
+    
+        if ((y + height) > SCREEN_HEIGHT) {
+            height = SCREEN_HEIGHT - y;
+        }
+    
+        int inv_x = SCREEN_WIDTH - (x + width);
+        int inv_y = SCREEN_HEIGHT - (y + height);
+        
+        C3D_SetScissor(GPU_SCISSOR_NORMAL,
+            inv_y,            // left (Y min)
+            inv_x,                // top (X min)
+            inv_y + height,    // right (Y max)
+            inv_x + width    // bottom (X max)
+        );
+    } else {
+        C3D_SetScissor(
+            GPU_SCISSOR_INVERT,
+            0,
+            0,
+            SCREEN_HEIGHT,
+            SCREEN_WIDTH
+        );
+    }
+}
+
+void EndScissor() {
+    C2D_Flush();
+    C3D_SetScissor(GPU_SCISSOR_DISABLE, 0, 0, 0, 0);
 }
 
 void Clay_Citro2d_Init() {
@@ -278,10 +308,10 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
             
             // TODO: Try to implement scissor
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START: {
-                //SetScissor(GPU_SCISSOR_NORMAL, screen, &boundingBox);
+                //BeginScissor(screen, &boundingBox);
             } break;
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END: {
-                //SetScissor(GPU_SCISSOR_DISABLE, screen, &boundingBox);
+                //EndScissor();
             } break;
             default:
                 break;
