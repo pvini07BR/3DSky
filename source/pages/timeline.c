@@ -1,5 +1,6 @@
 #include <3ds.h>
 #include "components/feed.h"
+#include "defines.h"
 #include "thirdparty/bluesky/bluesky.h"
 #include "pages/timeline.h"
 
@@ -34,7 +35,34 @@ void timeline_init(TimelinePage* data) {
 void timeline_page_layout(TimelinePage *data) {
     if (data == NULL) { return; }
 
-    feed_layout(&data->feed);
+    CLAY({
+        .layout = {
+            .sizing = { CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF + BOTTOM_WIDTH + 1), CLAY_SIZING_GROW() },
+            .layoutDirection = CLAY_LEFT_TO_RIGHT
+        },
+        .border = {
+            .width = {
+                .right = 1
+            },
+            .color = {46, 64, 82, 255}
+        }
+    }) {
+        // Empty space to push the posts to fit in the bottom screen
+        CLAY({
+            .layout = {
+                .sizing = { CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF), CLAY_SIZING_GROW() }
+            },
+            .border = {
+                .width = {
+                    .right = 1
+                },
+                .color = {46, 64, 82, 255}
+            }
+        });
+
+        // Where the posts will be
+        feed_layout(&data->feed, TOP_HEIGHT);
+    }
 }
 
 void timeline_free(TimelinePage* data) {

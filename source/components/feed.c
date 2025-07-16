@@ -8,42 +8,23 @@
 Thread feedLoadThreadHnd = NULL;
 bool stopFeedLoadingThread = false;
 
-void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData);
-void feed_load_posts(Feed* feed, json_t *root);
-
-void timeline_loading_thread(void* args) {
-    if (args == NULL) return;
-    Feed* feed = (Feed*)args;
-    if (feed == NULL) return;
-
-    feed->type = FEED_TYPE_TIMELINE;
-    feed->loaded = false;
-
-    bs_client_response_t* response = bs_client_timeline_get(&feed->pagOpts);
-    if (response->err_code != 0) {
-        if (response->err_msg != NULL) {
-            fprintf(stderr, "Failed loading timeline: %s\n", response->err_msg);
-            bs_client_response_free(response);
-        }
-    } else {
-        json_error_t error;
-        json_t* root = json_loads(response->resp, 0, &error);
-        bs_client_response_free(response);
-
-        if (!root) {
-            fprintf(stderr, "Error parsing timeline string at line %d: %s\n", error.line, error.text);
-        } else {            
-            feed_load_posts(feed, root);
+void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
+    if (userData == 0) { return; }
+    Feed* data = (Feed*)userData;
+    if (data == NULL) { return; }
     
-            json_decref(root);
+    if (data->loaded) {
+        if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
+            switch (data->type) {
+                case FEED_TYPE_TIMELINE: {
+                    feed_load_timeline(data);
+                } break;
+                default: {
+
+                } break;
+            }
         }
     }
-
-    feed->loaded = true;
-}
-
-void feed_load_timeline(Feed* feed) {
-    feedLoadThreadHnd = threadCreate(timeline_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
 }
 
 void feed_load_posts(Feed* feed, json_t* root) {
@@ -106,87 +87,112 @@ void feed_load_posts(Feed* feed, json_t* root) {
     }
 }
 
-void feed_layout(Feed* data) {
-    CLAY({
-        .layout = {
-            .layoutDirection = CLAY_LEFT_TO_RIGHT
-        }
-    }) {
-        CLAY({
-            .layout = {
-                .sizing = { CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF-1), CLAY_SIZING_GROW(0) }
-            }
-        });
+void timeline_loading_thread(void* args) {
+    if (args == NULL) return;
+    Feed* feed = (Feed*)args;
+    if (feed == NULL) return;
 
-        CLAY((Clay_ElementDeclaration){
-            .id = CLAY_ID("timelineScroll"),
-            .layout = {
-                .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH+2), CLAY_SIZING_GROW(0)},
-                .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                .padding = { .top = TOP_HEIGHT-1 },
-                .childAlignment = {.x = CLAY_ALIGN_X_CENTER},
+    feed->type = FEED_TYPE_TIMELINE;
+    feed->loaded = false;
+
+    bs_client_response_t* response = bs_client_timeline_get(&feed->pagOpts);
+    if (response->err_code != 0) {
+        if (response->err_msg != NULL) {
+            fprintf(stderr, "Failed loading timeline: %s\n", response->err_msg);
+            bs_client_response_free(response);
+        }
+    } else {
+        json_error_t error;
+        json_t* root = json_loads(response->resp, 0, &error);
+        bs_client_response_free(response);
+
+        if (!root) {
+            fprintf(stderr, "Error parsing timeline string at line %d: %s\n", error.line, error.text);
+        } else {            
+            feed_load_posts(feed, root);
+    
+            json_decref(root);
+        }
+    }
+
+    feed->loaded = true;
+}
+
+void feed_load_timeline(Feed* feed) {
+    feedLoadThreadHnd = threadCreate(timeline_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
+}
+
+void feed_layout(Feed* data, float top_padding) {
+    CLAY((Clay_ElementDeclaration){
+        .id = CLAY_ID("timelineScroll"),
+        .layout = {
+            .sizing = { CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW(0) },
+            .layoutDirection = CLAY_TOP_TO_BOTTOM,
+            .padding = { .top = top_padding },
+            .childAlignment = {.x = CLAY_ALIGN_X_LEFT},
+        },
+        .clip = {
+            .horizontal = true,
+            .vertical = true,
+            .childOffset = {
+                .x = 0.0f,
+                .y = data->setScroll ? data->scrollValue : Clay_GetScrollOffset().y
+            }
+        },
+        .border = {
+            .width = {
+                //.left = 1,
+                //.right = 1,
+                .betweenChildren = CLAY_TOP_TO_BOTTOM
             },
-            .clip = {
-                .horizontal = true,
-                .vertical = true,
-                .childOffset = {
-                    .x = 0.0f,
-                    .y = data->setScroll ? data->scrollValue : Clay_GetScrollOffset().y
+            .color = {46, 64, 82, 255}
+        },
+    }) {
+        /*
+        CLAY((Clay_ElementDeclaration){
+            .layout = {
+                .sizing = {
+                    .width = CLAY_SIZING_FIXED(BOTTOM_WIDTH),
+                    .height = CLAY_SIZING_FIXED(1)
                 }
             },
             .border = {
                 .width = {
-                    .left = 1,
-                    .right = 1,
-                    .betweenChildren = CLAY_TOP_TO_BOTTOM
+                    .top = 0
                 },
                 .color = {46, 64, 82, 255}
-            },
-        }) {
+            }
+        });
+        */
+        
+        if (data->loaded) {
+            for (int i = 0; i < 50; i++) {
+                if (data->posts[i].postText != NULL) {
+                    post_component(&data->posts[i]);
+                }
+            }
             CLAY((Clay_ElementDeclaration){
+                .id = CLAY_ID("load_more_button"),
                 .layout = {
-                    .sizing = {
-                        .width = CLAY_SIZING_FIXED(BOTTOM_WIDTH),
-                        .height = CLAY_SIZING_FIXED(1)
-                    }
+                    .sizing = {CLAY_SIZING_GROW(), CLAY_SIZING_GROW()},
+                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                    .padding = { .bottom = 10, .top = 10 },
+                    .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER}
                 },
-                .border = {
-                    .width = {
-                        .top = 0
-                    },
-                    .color = {46, 64, 82, 255}
-                }
-            });
-            
-            if (data->loaded) {
-                for (int i = 0; i < 50; i++) {
-                    if (data->posts[i].postText != NULL) {
-                        post_component(&data->posts[i]);
-                    }
-                }
-                CLAY((Clay_ElementDeclaration){
-                    .id = CLAY_ID("load_more_button"),
-                    .layout = {
-                        .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW(0)},
-                        .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                        .padding = { .bottom = 10, .top = 10 },
-                        .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER}
-                    },
-                    .border = {.width = {.top = 1}, .color = {46, 64, 82, 255}}
-                }) {
-                    Clay_OnHover(onLoadMorePosts, (uintptr_t)data);
-                    CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
-                }
-            } else {
-                CLAY({
-                    .layout = {
-                        .sizing = {CLAY_SIZING_GROW(), CLAY_SIZING_FIXED(BOTTOM_HEIGHT-40)},
-                        .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                        .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER},
-                    },
-                }) {
-                    CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
-                }
+                //.border = {.width = {.top = 1}, .color = {46, 64, 82, 255}}
+            }) {
+                Clay_OnHover(onLoadMorePosts, (uintptr_t)data);
+                CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+            }
+        } else {
+            CLAY({
+                .layout = {
+                    .sizing = {CLAY_SIZING_GROW(), CLAY_SIZING_GROW()},
+                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                    .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER},
+                },
+            }) {
+                CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
             }
         }
     }
@@ -200,25 +206,6 @@ void feed_layout(Feed* data) {
             }
 
             data->scrollValue = scrollData.scrollPosition->y;
-        }
-    }
-}
-
-void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
-    if (userData == 0) { return; }
-    Feed* data = (Feed*)userData;
-    if (data == NULL) { return; }
-    
-    if (data->loaded) {
-        if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
-            switch (data->type) {
-                case FEED_TYPE_TIMELINE: {
-                    feed_load_timeline(data);
-                } break;
-                default: {
-
-                } break;
-            }
         }
     }
 }

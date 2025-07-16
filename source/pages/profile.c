@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "avatar_img_cache.h"
+#include "components/feed.h"
 #include "jansson.h"
 #include "thirdparty/clay/clay.h"
 #include "thirdparty/bluesky/bluesky.h"
@@ -163,31 +164,7 @@ void profile_page_layout(ProfilePage *data) {
             });
 
             // Where the posts will be
-            CLAY({
-                .layout = {
-                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                    .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW()},
-                },
-                .clip = {
-                    .vertical = true,
-                    .horizontal = false,
-                    .childOffset = {
-                        .x = 0.0f,
-                        .y = Clay_GetScrollOffset().y
-                    }
-                }
-            }) {
-                for (int i = 0; i < 50; i++) {
-                    CLAY_TEXT(
-                        CLAY_STRING("THIS IS A TEST"),
-                        CLAY_TEXT_CONFIG({
-                            .textColor = {255, 255, 255, 255},
-                            .fontSize = 15,
-                            .fontId = 0
-                        })
-                    );
-                }
-            }
+            feed_layout(&data->feed, 0.0f);
         }
     }
 }

@@ -19,7 +19,7 @@ typedef struct {
 } Feed;
 
 void feed_load_timeline(Feed* feed);
-void feed_layout(Feed* feed);
+void feed_layout(Feed* feed, float top_padding);
 void feed_free(Feed* feed);
 
 #endif
