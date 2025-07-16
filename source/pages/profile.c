@@ -135,11 +135,13 @@ void profile_page_layout(ProfilePage *data) {
             }
         }
 
+        /*
         CLAY({
             .layout = {
                 .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_FIXED(10) }
             }
         });
+        */
 
         // Temp layout for translating the posts to the bottom
         CLAY({

@@ -150,17 +150,22 @@ u32 ClayColor_to_C2DColor(Clay_Color color) {
 void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* fonts, gfxScreen_t screen) {
     for (int i = 0; i < renderCommands->length; i++) {
         Clay_RenderCommand* renderCommand = &renderCommands->internalArray[i];
-        Clay_BoundingBox boundingBox = renderCommand->boundingBox;
+        Clay_BoundingBox boundingBox = {roundf(renderCommand->boundingBox.x), roundf(renderCommand->boundingBox.y), roundf(renderCommand->boundingBox.width), roundf(renderCommand->boundingBox.height)};
 
         /*
-        if (!is_visible(screen, &boundingBox) && (renderCommand->renderData.clip.horizontal || renderCommand->renderData.clip.vertical)) {
+        if (!is_visible(screen, &boundingBox)) {
             continue;
         }
         */
 
         switch(renderCommand->commandType) {
             case CLAY_RENDER_COMMAND_TYPE_RECTANGLE: {
+                if (!is_visible(screen, &boundingBox)) {
+                    break;
+                }
+
                 Clay_RectangleRenderData* config = &renderCommand->renderData.rectangle;
+
                 u32 color = C2D_Color32(
                     config->backgroundColor.r,
                     config->backgroundColor.g,
@@ -201,6 +206,10 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_TEXT: {
+                if (!is_visible(screen, &boundingBox)) {
+                    break;
+                }
+
                 Clay_TextRenderData* textData = &renderCommand->renderData.text;
                 C2D_Font fontToUse = fonts[textData->fontId];
                 FINF_s* finfo = C2D_FontGetInfo(fontToUse);
@@ -211,7 +220,7 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                     textData->stringContents.length
                 );
 
-                if (text_obj) {
+                if (text_obj) {                    
                     C2D_DrawText(
                         text_obj,
                         C2D_WithColor,
@@ -230,6 +239,10 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                 }
             } break;
             case CLAY_RENDER_COMMAND_TYPE_BORDER: {
+                if (!is_visible(screen, &boundingBox)) {
+                    break;
+                }
+
                 Clay_BorderRenderData *config = &renderCommand->renderData.border;
 
                 // Left border
@@ -277,6 +290,10 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_IMAGE: {
+                if (!is_visible(screen, &boundingBox)) {
+                    break;
+                }
+
                 Clay_ImageRenderData *config = &renderCommand->renderData.image;
                 C2D_Image* image = (C2D_Image*)config->imageData;
 
