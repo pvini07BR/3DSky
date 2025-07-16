@@ -812,3 +812,8 @@ bs_client_get_current_handle()
 {
     return cur_handle;
 }
+
+const char*
+bs_client_get_current_did() {
+    return did;
+}

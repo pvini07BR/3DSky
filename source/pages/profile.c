@@ -18,6 +18,8 @@ void loadProfileThread(void* args) {
     ProfilePage* data = (ProfilePage*)args;
     if (data == NULL) return;
 
+    printf("Loading profile info...\n");
+
     bs_client_response_t* resp = bs_client_profile_get(data->handle);
     if (resp->err_code != 0) {
         fprintf(stderr, "An error occurred when loading the profile.\n");
@@ -40,6 +42,8 @@ void loadProfileThread(void* args) {
         bs_client_response_free(resp);
         return;
     }
+
+    //const char* did = json_string_value(json_object_get(root, "did"));
     
     data->displayName = json_string_value(json_object_get(root, "displayName"));
     data->description = json_string_value(json_object_get(root, "description"));
@@ -61,6 +65,7 @@ void loadProfileThread(void* args) {
     }
 
     bs_client_response_free(resp);
+
     data->loaded = true;
 }
 

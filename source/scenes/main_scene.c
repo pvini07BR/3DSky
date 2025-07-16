@@ -44,13 +44,32 @@ Clay_Dimensions iconDimensions = {
     .height = 32
 };
 
+/*
 TimelinePage timelineData = {
     .initialized = false,
-    .cursor = NULL,
-    .posts = {},
+    .pagOpts = {
+        .cursor = NULL,
+        .limit = 50
+    },
+    .posts = {0},
     .postsLoaded = false,
     .scrollValue = 0.0f,
     .setScroll = false
+};
+*/
+
+TimelinePage timelineData = {
+    .initialized = false,
+    .feed = {
+        .pagOpts = {
+            .cursor = NULL,
+            .limit = 50
+        },
+        .posts = {0},
+        .loaded = false,
+        .scrollValue = 0.0f,
+        .setScroll = false
+    }
 };
 
 ProfilePage profileData = {
@@ -63,6 +82,17 @@ ProfilePage profileData = {
     .followersCount = 0,
     .followsCount = 0,
     .postsCount = 0,
+
+    .feed = {
+        .pagOpts = {
+            .cursor = NULL,
+            .limit = 50
+        },
+        .posts = {0},
+        .loaded = false,
+        .scrollValue = 0.0f,
+        .setScroll = false
+    }
 };
 
 void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
@@ -71,12 +101,12 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME && !disableNavButtons && page != currentPage) {
         switch (page) {
         case HOME:
-            timelineData.setScroll = true;
+            timelineData.feed.setScroll = true;
             Clay_Citro2d_ClearTextCacheAndBuffer();
             currentPage = page;
 
             if (!timelineData.initialized)
-                timeline_page_load_posts(&timelineData);
+                timeline_init(&timelineData);
             break;
         case PROFILE:
             Clay_Citro2d_ClearTextCacheAndBuffer();
@@ -108,7 +138,7 @@ static void main_init() {
     
     switch (currentPage){
         case HOME:
-            timeline_page_load_posts(&timelineData);
+            timeline_init(&timelineData);
             break;
         case PROFILE:
             profile_page_load(&profileData, bs_client_get_current_handle());
@@ -180,7 +210,7 @@ static void main_layout(void) {
 static void main_update(void) {
     switch(currentPage) {
         case HOME:
-            disableNavButtons = !timelineData.postsLoaded;
+            disableNavButtons = !timeline_has_loaded_posts(&timelineData);
             break;
         case PROFILE:
             disableNavButtons = !profileData.loaded;

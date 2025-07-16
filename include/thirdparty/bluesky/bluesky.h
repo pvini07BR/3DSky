@@ -162,6 +162,9 @@ bs_client_free();
 const char*
 bs_client_get_current_handle();
 
+const char*
+bs_client_get_current_did();
+
 #endif /* __BLUESKY_H */
 #ifdef __cplusplus
 }

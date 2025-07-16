@@ -150,7 +150,7 @@ u32 ClayColor_to_C2DColor(Clay_Color color) {
 void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* fonts, gfxScreen_t screen) {
     for (int i = 0; i < renderCommands->length; i++) {
         Clay_RenderCommand* renderCommand = &renderCommands->internalArray[i];
-        Clay_BoundingBox boundingBox = {roundf(renderCommand->boundingBox.x), roundf(renderCommand->boundingBox.y), roundf(renderCommand->boundingBox.width), roundf(renderCommand->boundingBox.height)};
+        Clay_BoundingBox boundingBox = renderCommand->boundingBox;
 
         if (renderCommand->commandType != CLAY_RENDER_COMMAND_TYPE_SCISSOR_START && renderCommand->commandType != CLAY_RENDER_COMMAND_TYPE_SCISSOR_END) {
             if (!is_visible(screen, &boundingBox)) {

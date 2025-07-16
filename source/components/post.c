@@ -2,7 +2,7 @@
 #include <string.h>
 #include "defines.h"
 
-void post_component(struct Post* post) {
+void post_component(Post* post) {
     CLAY({
         .layout = {
             .padding = CLAY_PADDING_ALL(10),
