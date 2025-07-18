@@ -165,6 +165,8 @@ void profile_page_layout(ProfilePage *data) {
 }
 
 void profile_page_free(ProfilePage* data) {
+    feed_free(&data->feed);
+
     if (data->loadingThreadHandle) {
         threadJoin(data->loadingThreadHandle, U64_MAX);
     }
