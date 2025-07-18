@@ -1,9 +1,12 @@
 #include "components/feed.h"
 
+#include "avatar_img_cache.h"
+#include "c2d/base.h"
 #include "components/post.h"
 #include "jansson.h"
 #include "string_utils.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
+#include <string.h>
 
 void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     if (userData == 0) { return; }
@@ -67,6 +70,43 @@ void feed_load_posts(Feed* feed, json_t* root) {
     }
 }
 
+void avatar_loading_thread(void* args) {
+    if (args == NULL) return;
+    Feed* feed = (Feed*)args;
+    if (feed == NULL) return;
+
+    char* uniqueUrls[50] = {0};
+    int uniqueCount = 0;
+
+    for (int i = 0; i < 50; i++) {
+        if (feed->stopAvatarThread) return;
+        if (feed->posts[i].avatarUrl && feed->posts[i].avatarImage == NULL) {
+            int found = 0;
+            for (int j = 0; j < uniqueCount; j++) {
+                if (strcmp(feed->posts[i].avatarUrl, uniqueUrls[j]) == 0) {
+                    found = 1;
+                    break;
+                }
+            }
+            if (!found) {
+                uniqueUrls[uniqueCount++] = feed->posts[i].avatarUrl;
+            }
+        }
+    }
+
+    for (int i = 0; i < uniqueCount; i++) {
+        if (feed->stopAvatarThread) return;
+        C2D_Image* img = avatar_img_cache_get_or_download_image(uniqueUrls[i], 32, 32);
+        if (img) {
+            for (int j = 0; j < 50; j++) {
+                if (feed->posts[j].avatarUrl && strcmp(feed->posts[j].avatarUrl, uniqueUrls[i]) == 0) {
+                    feed->posts[j].avatarImage = img;
+                }
+            }
+        }
+    }
+}
+
 void post_loading_thread(void* args) {
     if (args == NULL) return;
     Feed* feed = (Feed*)args;
@@ -122,6 +162,8 @@ void post_loading_thread(void* args) {
             feed_load_posts(feed, root);
     
             json_decref(root);
+
+            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
         }
     }
 
@@ -131,6 +173,10 @@ void post_loading_thread(void* args) {
 // This function will create a new thread to load the posts into the feed,
 // and will use the appropriate function depending on what feed type has been set
 void feed_load(Feed* feed) {
+    if (feed->avatarThreadHandle) {
+        feed->stopAvatarThread = true;
+        threadJoin(feed->avatarThreadHandle, U64_MAX);
+    }
     if (feed->loadingThreadHandle) {
         feed->stopLoadingThread = true;
         threadJoin(feed->loadingThreadHandle, U64_MAX);
@@ -229,6 +275,10 @@ void feed_layout(Feed* data, float top_padding) {
 }
 
 void feed_free(Feed *feed) {
+    if (feed->avatarThreadHandle) {
+        feed->stopAvatarThread = true;
+        threadJoin(feed->avatarThreadHandle, U64_MAX);
+    }
     if (feed->loadingThreadHandle) {
         feed->stopLoadingThread = true;
         threadJoin(feed->loadingThreadHandle, U64_MAX);

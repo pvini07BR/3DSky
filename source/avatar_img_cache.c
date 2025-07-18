@@ -1,45 +1,47 @@
 #include "avatar_img_cache.h"
 
 #include <stdlib.h>
+#include "3ds/synchronization.h"
 #include "thirdparty/uthash/uthash.h"
 #include "image_downloader.h"
 
 typedef struct {
-    char* urlKey;
+    const char* urlKey;
     C2D_Image avatarImage;
     UT_hash_handle hh;
 } AvatarImgCache;
 
 AvatarImgCache* imageCache = NULL;
 
+LightLock cacheLock;
+
+void avatar_img_cache_init() {
+    LightLock_Init(&cacheLock);
+}
+
 C2D_Image* avatar_img_cache_get_or_download_image(const char* url, unsigned int width, unsigned int height) {
-    if (url == NULL) {
-        return NULL;
-    }
+    if (url == NULL) return NULL;
 
     AvatarImgCache* entry = NULL;
     HASH_FIND_STR(imageCache, url, entry);
     if (entry) return &entry->avatarImage;
-
+    
+    LightLock_Lock(&cacheLock);
     entry = (AvatarImgCache*)malloc(sizeof(AvatarImgCache));
     if (!entry) {
         perror("Error allocating memory for image cache entry");
         return NULL;
     }
-    entry->urlKey = malloc(strlen(url) + 1);
-    if (!entry->urlKey) {
-        perror("Error allocating memory for URL key");
-        free(entry);
-        return NULL;
-    }
-    strcpy(entry->urlKey, url);
-    entry->urlKey[strlen(url)] = '\0';
+
+    entry->urlKey = url;
     entry->avatarImage = download_image_from_url(url, width, height);
-    if (entry->avatarImage.tex == NULL && entry->avatarImage.subtex == NULL) {
+    if (entry->avatarImage.tex == NULL || entry->avatarImage.subtex == NULL) {
         free(entry);
         return NULL;
     }
-    HASH_ADD_STR(imageCache, urlKey, entry);
+
+    HASH_ADD_KEYPTR(hh, imageCache, entry->urlKey, strlen(entry->urlKey), entry);
+    LightLock_Unlock(&cacheLock);
     return &entry->avatarImage;
 }
 

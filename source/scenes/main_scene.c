@@ -57,7 +57,9 @@ TimelinePage timelineData = {
         .scrollValue = 0.0f,
         .setScroll = false,
         .loadingThreadHandle = NULL,
-        .stopLoadingThread = false
+        .avatarThreadHandle = NULL,
+        .stopLoadingThread = false,
+        .stopAvatarThread = false
     }
 };
 

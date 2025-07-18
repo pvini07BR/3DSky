@@ -82,6 +82,8 @@ int main() {
     Clay_Initialize(arena, (Clay_Dimensions) { TOP_WIDTH, TOP_HEIGHT + BOTTOM_HEIGHT }, (Clay_ErrorHandler) { HandleClayErrors });
     Clay_SetMeasureTextFunction(MeasureText, &fonts);
 
+    avatar_img_cache_init();
+
     change_scene(get_login_scene()); 
 
     touchPosition tempPos = {-1};

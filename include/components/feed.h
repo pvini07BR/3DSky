@@ -17,7 +17,9 @@ typedef struct {
     float scrollValue;
     bool setScroll;
     Thread loadingThreadHandle;
+    Thread avatarThreadHandle;
     bool stopLoadingThread;
+    bool stopAvatarThread;
 
     // This member variable will only be used for author posts
     char* did;
