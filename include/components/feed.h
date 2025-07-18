@@ -23,8 +23,7 @@ typedef struct {
     char* did;
 } Feed;
 
-void feed_load_timeline(Feed* feed);
-void feed_load_author_posts(Feed* feed);
+void feed_load(Feed* feed);
 void feed_layout(Feed* feed, float top_padding);
 void feed_free(Feed* feed);
 

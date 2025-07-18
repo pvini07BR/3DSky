@@ -12,17 +12,7 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     
     if (data->loaded) {
         if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
-            switch (data->type) {
-                case FEED_TYPE_TIMELINE: {
-                    feed_load_timeline(data);
-                } break;
-                case FEED_TYPE_AUTHOR: {
-                    feed_load_author_posts(data);
-                } break;
-                default: {
-
-                } break;
-            }
+            feed_load(data);
         }
     }
 }
@@ -84,8 +74,32 @@ void post_loading_thread(void* args) {
 
     feed->loaded = false;
 
-    bs_client_response_t* response = feed->type == FEED_TYPE_TIMELINE ? bs_client_timeline_get(&feed->pagOpts) : bs_client_author_feed_get(feed->did, &feed->pagOpts);
+    bs_client_response_t* response = NULL;
+    switch (feed->type) {
+        case FEED_TYPE_TIMELINE: {
+            response = bs_client_timeline_get(&feed->pagOpts);
+        } break;
+        case FEED_TYPE_AUTHOR: {
+            if (feed->did == NULL) {
+                fprintf(stderr, "Cannot load the author feed if the did is null. Aborting\n");
+                feed->loaded = true;
+                return;
+            }
+            response = bs_client_author_feed_get(feed->did, &feed->pagOpts);
+        } break;
+        default: {
+            fprintf(stderr, "Unhandled feed type. Aborting\n");
+            feed->loaded = true;
+            return;
+        };
+    }
 
+    if (response == NULL) {
+        fprintf(stderr, "Response is null. Cannot procceed with that. Aborting\n");
+        feed->loaded = true;
+        return;
+    }
+    
     if (response->err_code != 0) {
         if (response->err_msg != NULL) {
             if (feed->type == FEED_TYPE_TIMELINE)
@@ -114,21 +128,13 @@ void post_loading_thread(void* args) {
     feed->loaded = true;
 }
 
-void feed_load_timeline(Feed* feed) {
+// This function will create a new thread to load the posts into the feed,
+// and will use the appropriate function depending on what feed type has been set
+void feed_load(Feed* feed) {
     if (feed->loadingThreadHandle) {
         feed->stopLoadingThread = true;
         threadJoin(feed->loadingThreadHandle, U64_MAX);
     }
-    feed->type = FEED_TYPE_TIMELINE;
-    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
-}
-
-void feed_load_author_posts(Feed* feed) {
-    if (feed->loadingThreadHandle) {
-        feed->stopLoadingThread = true;
-        threadJoin(feed->loadingThreadHandle, U64_MAX);
-    }
-    feed->type = FEED_TYPE_AUTHOR;
     feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
 }
 

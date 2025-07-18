@@ -39,7 +39,7 @@ void loadProfileThread(void* args) {
     if (did) {
         if (data->feed.did) free(data->feed.did);
         data->feed.did = strdup(did);
-        feed_load_author_posts(&data->feed);
+        feed_load(&data->feed);
     }
 
     if (data->displayName) free(data->displayName);

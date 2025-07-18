@@ -1,5 +1,6 @@
 #include <jansson.h>
 #include <citro2d.h>
+#include "components/feed.h"
 #include "thirdparty/bluesky/bluesky.h"
 
 #include "scenes/main_scene.h"
@@ -50,6 +51,7 @@ TimelinePage timelineData = {
             .cursor = NULL,
             .limit = 50
         },
+        .type = FEED_TYPE_TIMELINE,
         .posts = {{0}},
         .loaded = false,
         .scrollValue = 0.0f,
@@ -76,6 +78,7 @@ ProfilePage profileData = {
             .cursor = NULL,
             .limit = 50
         },
+        .type = FEED_TYPE_AUTHOR,
         .posts = {{0}},
         .loaded = false,
         .scrollValue = 0.0f,

@@ -28,7 +28,7 @@ void downloadAvatarsThread(void* args) {
 
 void timeline_init(TimelinePage* data) {
     if (data == NULL){return;}
-    feed_load_timeline(&data->feed);
+    feed_load(&data->feed);
     data->initialized = true;
 }
 
