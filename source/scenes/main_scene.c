@@ -3,7 +3,6 @@
 #include "thirdparty/bluesky/bluesky.h"
 
 #include "scenes/main_scene.h"
-#include "thirdparty/clay/clay_renderer_citro2d.h"
 #include "pages/profile.h"
 #include "pages/timeline.h"
 
@@ -44,20 +43,6 @@ Clay_Dimensions iconDimensions = {
     .height = 32
 };
 
-/*
-TimelinePage timelineData = {
-    .initialized = false,
-    .pagOpts = {
-        .cursor = NULL,
-        .limit = 50
-    },
-    .posts = {0},
-    .postsLoaded = false,
-    .scrollValue = 0.0f,
-    .setScroll = false
-};
-*/
-
 TimelinePage timelineData = {
     .initialized = false,
     .feed = {
@@ -65,19 +50,22 @@ TimelinePage timelineData = {
             .cursor = NULL,
             .limit = 50
         },
-        .posts = {0},
+        .posts = {{0}},
         .loaded = false,
         .scrollValue = 0.0f,
-        .setScroll = false
+        .setScroll = false,
+        .loadingThreadHandle = NULL,
+        .stopLoadingThread = false
     }
 };
 
 ProfilePage profileData = {
+    .handle = NULL,
     .initialized = false,
 
     .avatarImage = NULL,
     .description = NULL,
-    .handle = NULL,
+    .followsText = NULL,
 
     .followersCount = 0,
     .followsCount = 0,
@@ -88,10 +76,12 @@ ProfilePage profileData = {
             .cursor = NULL,
             .limit = 50
         },
-        .posts = {0},
+        .posts = {{0}},
         .loaded = false,
         .scrollValue = 0.0f,
-        .setScroll = false
+        .setScroll = false,
+        .loadingThreadHandle = NULL,
+        .stopLoadingThread = false
     }
 };
 
@@ -102,14 +92,15 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
         switch (page) {
         case HOME:
             timelineData.feed.setScroll = true;
-            Clay_Citro2d_ClearTextCacheAndBuffer();
+            //Clay_Citro2d_ClearTextCacheAndBuffer();
             currentPage = page;
 
             if (!timelineData.initialized)
                 timeline_init(&timelineData);
             break;
         case PROFILE:
-            Clay_Citro2d_ClearTextCacheAndBuffer();
+            //Clay_Citro2d_ClearTextCacheAndBuffer();
+            profileData.feed.setScroll = true;
             currentPage = page;
 
             if (!profileData.initialized)
@@ -213,7 +204,7 @@ static void main_update(void) {
             disableNavButtons = !timelineData.feed.loaded;
             break;
         case PROFILE:
-            disableNavButtons = !profileData.loaded;
+            disableNavButtons = !profileData.loaded || !profileData.feed.loaded;
             break;
         default:
             break;
@@ -222,7 +213,7 @@ static void main_update(void) {
 
 static void main_unload(void) {
     timeline_free(&timelineData);
-    profile_page_free();
+    profile_page_free(&profileData);
 
     if (iconsSheet) {
         C2D_SpriteSheetFree(iconsSheet);

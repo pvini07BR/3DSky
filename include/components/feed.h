@@ -16,9 +16,15 @@ typedef struct {
     FeedType type;
     float scrollValue;
     bool setScroll;
+    Thread loadingThreadHandle;
+    bool stopLoadingThread;
+
+    // This member variable will only be used for author posts
+    char* did;
 } Feed;
 
 void feed_load_timeline(Feed* feed);
+void feed_load_author_posts(Feed* feed);
 void feed_layout(Feed* feed, float top_padding);
 void feed_free(Feed* feed);
 

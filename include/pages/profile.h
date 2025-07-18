@@ -6,23 +6,28 @@
 #include "thirdparty/bluesky/bluesky.h"
 
 typedef struct {
+    const char* handle;
+
     bool initialized;
     bool loaded;
-
+    
     C2D_Image* avatarImage;
-    const char* displayName;
-    const char* handle;
-    const char* description;
+    char* displayName;
+    char* description;
+    char* followsText;
 
     unsigned int followersCount;
     unsigned int followsCount;
     unsigned int postsCount;
 
     Feed feed;
+
+    Thread loadingThreadHandle;
+
 } ProfilePage;
 
 void profile_page_load(ProfilePage* data, const char* handle);
 void profile_page_layout(ProfilePage* data);
-void profile_page_free();
+void profile_page_free(ProfilePage* data);
 
 #endif

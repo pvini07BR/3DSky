@@ -5,9 +5,6 @@
 #include "string_utils.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
 
-Thread feedLoadThreadHnd = NULL;
-bool stopFeedLoadingThread = false;
-
 void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     if (userData == 0) { return; }
     Feed* data = (Feed*)userData;
@@ -19,6 +16,9 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
                 case FEED_TYPE_TIMELINE: {
                     feed_load_timeline(data);
                 } break;
+                case FEED_TYPE_AUTHOR: {
+                    feed_load_author_posts(data);
+                } break;
                 default: {
 
                 } break;
@@ -28,40 +28,30 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
 }
 
 void feed_load_posts(Feed* feed, json_t* root) {
-    json_t* cursor_json = json_object_get(root, "cursor");
-
-    const char* cursor = json_string_value(cursor_json);
-
     json_t *posts_array = json_object_get(root, "feed");
     if (!json_is_array(posts_array)) { 
         fprintf(stderr, "Error: Feed is not an array.\n");
         json_decref(root);
         return;
     }
-
-    if (feed->pagOpts.cursor) {
-        free(feed->pagOpts.cursor);
+    
+    json_t* cursor_json = json_object_get(root, "cursor");
+    const char* cursor = json_string_value(cursor_json);
+    if (cursor) {
+        if (feed->pagOpts.cursor) free(feed->pagOpts.cursor); 
+        feed->pagOpts.cursor = strdup(cursor);
     }
-    feed->pagOpts.cursor = cursor ? strdup(cursor) : NULL;
 
     Clay_Citro2d_ClearTextCacheAndBuffer();
 
     for (size_t i = 0; i < json_array_size(posts_array); i++) {
         if (i >= 50) break;
-        if (stopFeedLoadingThread) break;
+        if (feed->stopLoadingThread) break;
 
-        if (feed->posts[i].displayName) {
-            free(feed->posts[i].displayName);
-        }
-        if (feed->posts[i].handle) {
-            free(feed->posts[i].handle);
-        }
-        if (feed->posts[i].postText) {
-            free(feed->posts[i].postText);
-        }
-        if (feed->posts[i].avatarUrl) {
-            free(feed->posts[i].avatarUrl);
-        }
+        if (feed->posts[i].displayName) free(feed->posts[i].displayName);
+        if (feed->posts[i].handle) free(feed->posts[i].handle);
+        if (feed->posts[i].postText) free(feed->posts[i].postText);
+        if (feed->posts[i].avatarUrl) free(feed->posts[i].avatarUrl);
 
         json_t* post = json_array_get(posts_array, i);
         
@@ -87,18 +77,21 @@ void feed_load_posts(Feed* feed, json_t* root) {
     }
 }
 
-void timeline_loading_thread(void* args) {
+void post_loading_thread(void* args) {
     if (args == NULL) return;
     Feed* feed = (Feed*)args;
     if (feed == NULL) return;
 
-    feed->type = FEED_TYPE_TIMELINE;
     feed->loaded = false;
 
-    bs_client_response_t* response = bs_client_timeline_get(&feed->pagOpts);
+    bs_client_response_t* response = feed->type == FEED_TYPE_TIMELINE ? bs_client_timeline_get(&feed->pagOpts) : bs_client_author_feed_get(feed->did, &feed->pagOpts);
+
     if (response->err_code != 0) {
         if (response->err_msg != NULL) {
-            fprintf(stderr, "Failed loading timeline: %s\n", response->err_msg);
+            if (feed->type == FEED_TYPE_TIMELINE)
+                fprintf(stderr, "Failed loading timeline: %s\n", response->err_msg);
+            else
+                fprintf(stderr, "Failed loading author posts: %s\n", response->err_msg);
             bs_client_response_free(response);
         }
     } else {
@@ -107,7 +100,10 @@ void timeline_loading_thread(void* args) {
         bs_client_response_free(response);
 
         if (!root) {
-            fprintf(stderr, "Error parsing timeline string at line %d: %s\n", error.line, error.text);
+            if (feed->type == FEED_TYPE_TIMELINE)
+                fprintf(stderr, "Error parsing timeline string at line %d: %s\n", error.line, error.text);
+            else
+                fprintf(stderr, "Error parsing author posts string at line %d: %s\n", error.line, error.text);
         } else {            
             feed_load_posts(feed, root);
     
@@ -119,12 +115,28 @@ void timeline_loading_thread(void* args) {
 }
 
 void feed_load_timeline(Feed* feed) {
-    feedLoadThreadHnd = threadCreate(timeline_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
+    if (feed->loadingThreadHandle) {
+        feed->stopLoadingThread = true;
+        threadJoin(feed->loadingThreadHandle, U64_MAX);
+    }
+    feed->type = FEED_TYPE_TIMELINE;
+    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
+}
+
+void feed_load_author_posts(Feed* feed) {
+    if (feed->loadingThreadHandle) {
+        feed->stopLoadingThread = true;
+        threadJoin(feed->loadingThreadHandle, U64_MAX);
+    }
+    feed->type = FEED_TYPE_AUTHOR;
+    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
 }
 
 void feed_layout(Feed* data, float top_padding) {
+    Clay_ElementId clayId = data->type == FEED_TYPE_TIMELINE ? CLAY_ID("timelineScroll") : CLAY_ID("authorFeedScroll");
+
     CLAY((Clay_ElementDeclaration){
-        .id = CLAY_ID("timelineScroll"),
+        .id = clayId,
         .layout = {
             .sizing = { CLAY_SIZING_FIXED(BOTTOM_WIDTH), CLAY_SIZING_GROW(0) },
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
@@ -197,7 +209,7 @@ void feed_layout(Feed* data, float top_padding) {
         }
     }
 
-    Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(CLAY_ID("timelineScroll"));
+    Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(clayId);
     if (scrollData.found) {
         if (scrollData.scrollPosition != NULL) {
             if (data->setScroll) {
@@ -211,9 +223,9 @@ void feed_layout(Feed* data, float top_padding) {
 }
 
 void feed_free(Feed *feed) {
-    if (feedLoadThreadHnd) {
-        stopFeedLoadingThread = true;
-        threadJoin(feedLoadThreadHnd, U64_MAX);
+    if (feed->loadingThreadHandle) {
+        feed->stopLoadingThread = true;
+        threadJoin(feed->loadingThreadHandle, U64_MAX);
     }
 
     for (int i = 0; i < 50; i++) {
