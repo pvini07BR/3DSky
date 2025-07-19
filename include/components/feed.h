@@ -25,8 +25,14 @@ typedef struct {
     char* did;
 } Feed;
 
+typedef struct {
+    void* context;
+    Post* post;
+} PostCallbackData;
+
+void feed_init(Feed* feed, FeedType feed_type);
 void feed_load(Feed* feed);
-void feed_layout(Feed* feed, float top_padding, void (*post_open_callback)(void*, Post*), void* context);
+void feed_layout(Feed* feed, float top_padding);
 void feed_free(Feed* feed);
 
 #endif

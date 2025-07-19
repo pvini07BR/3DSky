@@ -75,7 +75,20 @@ void loadProfileThread(void* args) {
 
 void profile_page_load(ProfilePage* data, const char* handle) {
     if (data == NULL) return;
+
+    feed_init(&data->feed, FEED_TYPE_AUTHOR);
+
     data->handle = handle;
+    data->initialized = false;
+
+    data->avatarImage = NULL;
+    data->description = NULL;
+    data->followsText = NULL;
+
+    data->followersCount = 0;
+    data->followsCount = 0;
+    data->postsCount = 0;
+
     data->loadingThreadHandle = threadCreate(loadProfileThread, data, (16 * 1024), 0x3f, -2, true);
     data->initialized = true;
 }
@@ -159,7 +172,7 @@ void profile_page_layout(ProfilePage *data) {
             });
 
             // Where the posts will be
-            feed_layout(&data->feed, 0.0f, NULL, NULL);
+            feed_layout(&data->feed, 0.0f);
         }
     }
 }

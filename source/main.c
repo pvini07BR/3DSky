@@ -3,7 +3,6 @@
 #include "3ds/types.h"
 #include "c3d/renderqueue.h"
 #include "scenes/scene.h"
-#include "sys/unistd.h"
 #include <malloc.h>
 #include <math.h>
 #include <stdio.h>
@@ -31,7 +30,7 @@ typedef enum {
 const ConsoleMode CONSOLE_MODE = OFF;
 
 void HandleClayErrors(Clay_ErrorData errorData) {
-    printf("%s\n", errorData.errorText.chars);
+    fprintf(stderr, "[CLAY ERROR]: %s\n", errorData.errorText.chars);
 }
 
 int main() {

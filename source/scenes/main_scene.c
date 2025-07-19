@@ -44,57 +44,8 @@ Clay_Dimensions iconDimensions = {
     .height = 32
 };
 
-TimelinePage timelineData = {
-    .initialized = false,
-    .postView = {
-        .post = NULL,
-        .opened = false
-    },
-    .feed = {
-        .pagOpts = {
-            .cursor = NULL,
-            .limit = 50
-        },
-        .type = FEED_TYPE_TIMELINE,
-        .posts = {{0}},
-        .loaded = false,
-        .scrollValue = 0.0f,
-        .setScroll = false,
-        .loadingThreadHandle = NULL,
-        .avatarThreadHandle = NULL,
-        .stopLoadingThread = false,
-        .stopAvatarThread = false,
-        .did = NULL,
-    }
-};
-
-ProfilePage profileData = {
-    .handle = NULL,
-    .initialized = false,
-
-    .avatarImage = NULL,
-    .description = NULL,
-    .followsText = NULL,
-
-    .followersCount = 0,
-    .followsCount = 0,
-    .postsCount = 0,
-
-    .feed = {
-        .pagOpts = {
-            .cursor = NULL,
-            .limit = 50
-        },
-        .type = FEED_TYPE_AUTHOR,
-        .posts = {{0}},
-        .loaded = false,
-        .scrollValue = 0.0f,
-        .setScroll = false,
-        .loadingThreadHandle = NULL,
-        .stopLoadingThread = false,
-        .did = NULL,
-    }
-};
+TimelinePage timelineData;
+ProfilePage profileData;
 
 bool nav_button_pressed = false;
 

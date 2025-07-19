@@ -19,6 +19,11 @@ void post_open_callback(void* data, Post* post) {
 
 void timeline_init(TimelinePage* data) {
     if (data == NULL) return;
+
+    data->initialized = false,
+    post_view_init(&data->postView);
+    feed_init(&data->feed, FEED_TYPE_TIMELINE);
+
     feed_load(&data->feed);
     data->initialized = true;
 }
@@ -58,7 +63,7 @@ void timeline_page_layout(TimelinePage *data) {
 
         // Where the posts will be
         if (!data->postView.opened)
-            feed_layout(&data->feed, TOP_HEIGHT, post_open_callback, data);
+            feed_layout(&data->feed, TOP_HEIGHT);
         else
             post_view_layout(&data->postView);
     }

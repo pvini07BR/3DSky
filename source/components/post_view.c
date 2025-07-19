@@ -2,6 +2,20 @@
 #include "3ds/services/hid.h"
 #include "components/post.h"
 
+void post_view_init(PostView *data) {
+    if (data == NULL) return;
+    data->post = NULL;
+    data->opened = false;
+}
+
+void post_view_set(PostView* data, Post* post) {
+    if (data == NULL) return;
+    if (post == NULL) return;
+
+    data->post = post;
+    data->opened = true;
+}
+
 void post_view_layout(PostView* data) {
     if (!data->opened) return;
     CLAY({

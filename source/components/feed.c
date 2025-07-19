@@ -9,6 +9,22 @@
 #include <string.h>
 
 bool load_more_posts_pressed = false;
+bool post_pressed = false;
+
+void onPostHover(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
+    if (userData == 0) { return; }
+    Post* data = (Post*)userData;
+    if (data == NULL) { return; }
+
+    if (!post_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
+        post_pressed = true;
+    }
+
+    if (post_pressed && hidKeysUp() & KEY_TOUCH) {
+        printf("Post pressed: %s\n", data->postText);
+        post_pressed = false;
+    }
+}
 
 void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     if (userData == 0) { return; }
@@ -177,6 +193,24 @@ void post_loading_thread(void* args) {
     feed->loaded = true;
 }
 
+void feed_init(Feed *feed, FeedType feed_type) {
+    if (feed == NULL) return;
+
+    feed->pagOpts = (bs_client_pagination_opts){
+        .cursor = NULL,
+        .limit = 50
+    };
+    feed->type = feed_type;
+    feed->loaded = false,
+    feed->scrollValue = 0.0f;
+    feed->setScroll = false;
+    feed->loadingThreadHandle = NULL;
+    feed->avatarThreadHandle = NULL;
+    feed->stopLoadingThread = false;
+    feed->stopAvatarThread = false;
+    feed->did = NULL;
+}
+
 // This function will create a new thread to load the posts into the feed,
 // and will use the appropriate function depending on what feed type has been set
 void feed_load(Feed* feed) {
@@ -191,7 +225,7 @@ void feed_load(Feed* feed) {
     feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
 }
 
-void feed_layout(Feed* data, float top_padding, void (*post_open_callback)(void*, Post*), void* context) {
+void feed_layout(Feed* data, float top_padding) {
     Clay_ElementId clayId = data->type == FEED_TYPE_TIMELINE ? CLAY_ID("timelineScroll") : CLAY_ID("authorFeedScroll");
 
     CLAY((Clay_ElementDeclaration){
@@ -221,7 +255,7 @@ void feed_layout(Feed* data, float top_padding, void (*post_open_callback)(void*
         if (data->loaded) {
             for (int i = 0; i < 50; i++) {
                 if (data->posts[i].postText != NULL) {
-                    post_component(&data->posts[i], post_open_callback, context);
+                    post_component(&data->posts[i], onPostHover);
                 }
             }
             CLAY((Clay_ElementDeclaration){
