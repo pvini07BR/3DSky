@@ -159,7 +159,7 @@ void profile_page_layout(ProfilePage *data) {
             });
 
             // Where the posts will be
-            feed_layout(&data->feed, 0.0f);
+            feed_layout(&data->feed, 0.0f, NULL, NULL);
         }
     }
 }

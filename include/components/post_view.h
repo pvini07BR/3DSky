@@ -1,0 +1,14 @@
+#ifndef POST_VIEW_H
+#define POST_VIEW_H
+
+#include "components/post.h"
+
+typedef struct {
+    Post* post;
+    bool opened;
+} PostView;
+
+void post_view_layout(PostView* data);
+void post_view_input(PostView* data);
+
+#endif

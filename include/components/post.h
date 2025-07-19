@@ -12,7 +12,7 @@ typedef struct {
     C2D_Image* avatarImage;
 } Post;
 
-void post_component(Post* post);
+void post_component(Post* post, void (*post_open_callback)(void*, Post*), void* context);
 void post_free(Post* post);
 
 #endif

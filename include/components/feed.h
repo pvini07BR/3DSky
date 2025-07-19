@@ -26,7 +26,7 @@ typedef struct {
 } Feed;
 
 void feed_load(Feed* feed);
-void feed_layout(Feed* feed, float top_padding);
+void feed_layout(Feed* feed, float top_padding, void (*post_open_callback)(void*, Post*), void* context);
 void feed_free(Feed* feed);
 
 #endif

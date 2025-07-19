@@ -3,7 +3,27 @@
 #include <string.h>
 #include "defines.h"
 
-void post_component(Post* post) {
+typedef struct {
+    Post* post;
+    void (*callback)(void* data, Post* post);
+    void* context;
+} PostCallbackData;
+
+void onPostClicked(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
+    /*
+    if (userData == 0) { return; }
+    PostCallbackData* data = (PostCallbackData*)userData;
+    if (data == NULL) { return; }
+    
+    if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
+        if (data->callback && data->context && data->post) {
+            data->callback(data->context, data->post);
+        }
+    }
+    */
+}
+
+void post_component(Post* post, void (*post_open_callback)(void*, Post*), void* context) {
     CLAY({
         .layout = {
             .padding = CLAY_PADDING_ALL(10),
@@ -12,6 +32,14 @@ void post_component(Post* post) {
             .childGap = 4
         }
     }) {
+        PostCallbackData callbackData = {
+            .post = post,
+            .callback = post_open_callback,
+            .context = context
+        };
+
+        Clay_OnHover(onPostClicked, (uintptr_t)&callbackData);
+
         CLAY({
             .layout = {
                 .sizing = {CLAY_SIZING_FIXED(32), CLAY_SIZING_FIXED(32)},

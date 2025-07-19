@@ -8,14 +8,21 @@
 #include "thirdparty/clay/clay_renderer_citro2d.h"
 #include <string.h>
 
+bool load_more_posts_pressed = false;
+
 void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     if (userData == 0) { return; }
     Feed* data = (Feed*)userData;
     if (data == NULL) { return; }
     
     if (data->loaded) {
-        if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
+        if (!load_more_posts_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
+            load_more_posts_pressed = true;
+        }
+
+        if (load_more_posts_pressed && hidKeysUp() & KEY_TOUCH) {
             feed_load(data);
+            load_more_posts_pressed = false;
         }
     }
 }
@@ -184,7 +191,7 @@ void feed_load(Feed* feed) {
     feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
 }
 
-void feed_layout(Feed* data, float top_padding) {
+void feed_layout(Feed* data, float top_padding, void (*post_open_callback)(void*, Post*), void* context) {
     Clay_ElementId clayId = data->type == FEED_TYPE_TIMELINE ? CLAY_ID("timelineScroll") : CLAY_ID("authorFeedScroll");
 
     CLAY((Clay_ElementDeclaration){
@@ -205,34 +212,16 @@ void feed_layout(Feed* data, float top_padding) {
         },
         .border = {
             .width = {
-                //.left = 1,
-                //.right = 1,
                 .betweenChildren = CLAY_TOP_TO_BOTTOM
             },
             .color = {46, 64, 82, 255}
         },
     }) {
-        /*
-        CLAY((Clay_ElementDeclaration){
-            .layout = {
-                .sizing = {
-                    .width = CLAY_SIZING_FIXED(BOTTOM_WIDTH),
-                    .height = CLAY_SIZING_FIXED(1)
-                }
-            },
-            .border = {
-                .width = {
-                    .top = 0
-                },
-                .color = {46, 64, 82, 255}
-            }
-        });
-        */
         
         if (data->loaded) {
             for (int i = 0; i < 50; i++) {
                 if (data->posts[i].postText != NULL) {
-                    post_component(&data->posts[i]);
+                    post_component(&data->posts[i], post_open_callback, context);
                 }
             }
             CLAY((Clay_ElementDeclaration){
@@ -243,7 +232,7 @@ void feed_layout(Feed* data, float top_padding) {
                     .padding = { .bottom = 10, .top = 10 },
                     .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER}
                 },
-                //.border = {.width = {.top = 1}, .color = {46, 64, 82, 255}}
+                .backgroundColor = Clay_Hovered() ? (Clay_Color){46, 64, 82, 255} : (Clay_Color){22, 30, 39, 255}
             }) {
                 Clay_OnHover(onLoadMorePosts, (uintptr_t)data);
                 CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));

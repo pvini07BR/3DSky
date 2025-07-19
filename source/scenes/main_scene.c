@@ -46,6 +46,10 @@ Clay_Dimensions iconDimensions = {
 
 TimelinePage timelineData = {
     .initialized = false,
+    .postView = {
+        .post = NULL,
+        .opened = false
+    },
     .feed = {
         .pagOpts = {
             .cursor = NULL,
@@ -59,7 +63,8 @@ TimelinePage timelineData = {
         .loadingThreadHandle = NULL,
         .avatarThreadHandle = NULL,
         .stopLoadingThread = false,
-        .stopAvatarThread = false
+        .stopAvatarThread = false,
+        .did = NULL,
     }
 };
 
@@ -86,25 +91,31 @@ ProfilePage profileData = {
         .scrollValue = 0.0f,
         .setScroll = false,
         .loadingThreadHandle = NULL,
-        .stopLoadingThread = false
+        .stopLoadingThread = false,
+        .did = NULL,
     }
 };
+
+bool nav_button_pressed = false;
 
 void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     Pages page = (Pages)userData;
 
-    if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME && !disableNavButtons && page != currentPage) {
+    if (!nav_button_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
+        nav_button_pressed = true;
+    }
+
+    if (nav_button_pressed && hidKeysUp() & KEY_TOUCH) {
+        nav_button_pressed = false;
         switch (page) {
         case HOME:
             timelineData.feed.setScroll = true;
-            //Clay_Citro2d_ClearTextCacheAndBuffer();
             currentPage = page;
 
             if (!timelineData.initialized)
                 timeline_init(&timelineData);
             break;
         case PROFILE:
-            //Clay_Citro2d_ClearTextCacheAndBuffer();
             profileData.feed.setScroll = true;
             currentPage = page;
 
@@ -214,6 +225,8 @@ static void main_update(void) {
         default:
             break;
     }
+
+    timeline_update(&timelineData);
 }
 
 static void main_unload(void) {

@@ -7,35 +7,43 @@
 const Clay_Color TEXTEDIT_NORMAL_COLOR = (Clay_Color) {30, 41, 53, 255};
 const Clay_Color TEXTEDIT_HOVERED_COLOR = (Clay_Color) {40, 52, 64, 255};
 
+bool textedit_pressed = false;
+
 void HandleTextEditInteraction(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     TextEditData* data = (TextEditData*)userData;
     if (data->disable) {
         return;
     }
 
-    if (pointerInfo.state == CLAY_POINTER_DATA_RELEASED_THIS_FRAME) {
+    if (!textedit_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
+        textedit_pressed = true;
+    }
+
+    if (textedit_pressed && hidKeysUp() & KEY_TOUCH) {
+        textedit_pressed = false;
+
         SwkbdState swkbd;
         SwkbdButton button = SWKBD_BUTTON_NONE;
-
+        
         swkbdInit(&swkbd, SWKBD_TYPE_WESTERN, 2, data->maxLength > 0 ? data->maxLength : 80);
         swkbdSetInitialText(&swkbd, data->textToEdit);
         swkbdSetHintText(&swkbd, data->hintText.chars);
         swkbdSetValidation(&swkbd, SWKBD_NOTEMPTY_NOTBLANK, 0, data->maxLength > 0 ? data->maxLength : 80);
         swkbdSetFeatures(&swkbd, SWKBD_DARKEN_TOP_SCREEN);
-
+        
         if (data->isPassword) {
             swkbdSetPasswordMode(&swkbd, SWKBD_PASSWORD_HIDE_DELAY);
         }
-
+        
         char tempBuf[data->maxLength > 0 ? data->maxLength : 80];
         button = swkbdInputText(&swkbd, tempBuf, sizeof(tempBuf));
-
+        
         if (button == SWKBD_BUTTON_CONFIRM) {
             strcpy(data->textToEdit, tempBuf);
-
+            
             if (data->isPassword) {
                 strcpy(data->obfuscatedText, data->textToEdit);
-
+                
                 for (int i = 0; i < strlen(data->obfuscatedText); i++) {
                     data->obfuscatedText[i] = '*';
                 }

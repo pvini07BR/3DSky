@@ -2,14 +2,17 @@
 #define TIMELINE_PAGE_H
 
 #include "components/feed.h"
+#include "components/post_view.h"
 #include "thirdparty/bluesky/bluesky.h"
 
 typedef struct {
     bool initialized;
     Feed feed;
+    PostView postView;
 } TimelinePage;
 
 void timeline_init(TimelinePage* data);
+void timeline_update(TimelinePage* data);
 void timeline_page_layout(TimelinePage* data);
 void timeline_free(TimelinePage* data);
 

@@ -1,8 +1,11 @@
 #include "3ds/romfs.h"
+#include "3ds/services/hid.h"
 #include "3ds/types.h"
 #include "c3d/renderqueue.h"
 #include "scenes/scene.h"
+#include "sys/unistd.h"
 #include <malloc.h>
+#include <math.h>
 #include <stdio.h>
 #include <sys/stat.h>
 
@@ -89,6 +92,8 @@ int main() {
     touchPosition tempPos = {-1};
     Clay_Vector2 lastTouchPos = {-1.0f, -1.0f};
 
+    bool set = false;
+
     u64 lastTime = osGetTime();
     while(aptMainLoop()) {
         hidScanInput();
@@ -112,21 +117,26 @@ int main() {
         float touch_x = tempPos.px + TOP_BOTTOM_DIFF;
         float touch_y = tempPos.py + TOP_HEIGHT;
 
-        // TODO: Fix the issue of the clay pointer position staying at the last touch position when the touch is released
-        
-        if ((touch.px != 0 && touch.py != 0) || hidKeysHeld() & KEY_TOUCH || hidKeysDown() & KEY_TOUCH) {
+        u32 kHeld = hidKeysHeld();
+
+        if (kHeld & KEY_TOUCH) {
             Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, true);
             if (lastTouchPos.x != -1.0f && lastTouchPos.y != -1.0f) {
                 Clay_Vector2 scrollDelta = (Clay_Vector2) {touch_x - lastTouchPos.x, touch_y - lastTouchPos.y};
-                Clay_UpdateScrollContainers(true, scrollDelta, deltaTime);                
-            } else {
+                Clay_UpdateScrollContainers(true, scrollDelta, deltaTime);  
+            } else
                 Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, deltaTime);
-            }
             lastTouchPos = (Clay_Vector2) {touch_x, touch_y};
+            set = false;
         } else {
-            Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, false);
+            if (!set) {
+                Clay_SetPointerState((Clay_Vector2) {touch_x, touch_y}, false);
+                set = true;
+            } else {
+                Clay_SetPointerState((Clay_Vector2) {INFINITY, INFINITY}, false);
+            }
+            Clay_UpdateScrollContainers(true, (Clay_Vector2) {0, 0}, deltaTime);
             lastTouchPos = (Clay_Vector2) {-1.0f, -1.0f};
-            Clay_UpdateScrollContainers(true, (Clay_Vector2){0.0f, 0.0f}, deltaTime);
         }
 
         Scene* current = get_current_scene();
