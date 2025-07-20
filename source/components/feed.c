@@ -14,16 +14,18 @@ bool load_more_posts_pressed = false;
 bool post_pressed = false;
 
 void onPostHover(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
-    if (userData == 0) { return; }
+    if (userData == 0) return;
     Post* data = (Post*)userData;
-    if (data == NULL) { return; }
+    if (data == NULL) return;
+    Feed* feedPtr = (Feed*)data->feedPtr;
+    if (feedPtr == NULL) return;
+    if (feedPtr->postViewPtr == NULL) return;
 
     if (!post_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
         post_pressed = true;
     }
 
     if (post_pressed && hidKeysUp() & KEY_TOUCH) {
-        Feed* feedPtr = (Feed*)data->feedPtr;
 
         feedPtr->setScroll = true;
         post_view_set(feedPtr->postViewPtr, data);
