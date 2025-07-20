@@ -2,10 +2,7 @@
 #include <3ds.h>
 #include "3ds/services/hid.h"
 #include "stdio.h"
-
-const Clay_Color BUTTON_NORMAL_COLOR = (Clay_Color) {32, 138, 254, 255};
-const Clay_Color BUTTON_HOVERED_COLOR = (Clay_Color) {76, 162, 254, 255};
-const Clay_Color BUTTON_DISABLED_COLOR = (Clay_Color) {128, 128, 128, 255};
+#include "theming.h"
 
 bool button_pressed = false;
 
@@ -72,11 +69,11 @@ void button_component(Clay_String text, bool disabled, void (*onClick)(void*)) {
             },
         },
         .cornerRadius = {.topLeft = 8 },
-        .backgroundColor = disabled ? BUTTON_DISABLED_COLOR : Clay_Hovered() ? BUTTON_HOVERED_COLOR : BUTTON_NORMAL_COLOR,
+        .backgroundColor = disabled ? get_current_theme()->buttonDisabledColor : Clay_Hovered() ? get_current_theme()->buttonHoveredColor : get_current_theme()->buttonNormalColor,
     }) {
         if (!disabled && onClick != NULL) {
             Clay_OnHover(HandleButtonInteraction, (intptr_t)onClick);
         }
-        CLAY_TEXT(text, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 16, .fontId = 0 }));
+        CLAY_TEXT(text, CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->textColor, .fontSize = 16, .fontId = 0 }));
     }
 } 

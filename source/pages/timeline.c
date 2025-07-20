@@ -2,6 +2,7 @@
 #include "components/feed.h"
 #include "components/post_view.h"
 #include "defines.h"
+#include "theming.h"
 #include "thirdparty/bluesky/bluesky.h"
 #include "pages/timeline.h"
 
@@ -47,7 +48,7 @@ void timeline_page_layout(TimelinePage *data) {
             .width = {
                 .right = 1
             },
-            .color = {46, 64, 82, 255}
+            .color = get_current_theme()->accentColor
         }
     }) {
         // Empty space to push the posts to fit in the bottom screen
@@ -59,7 +60,7 @@ void timeline_page_layout(TimelinePage *data) {
                 .width = {
                     .right = 1
                 },
-                .color = {46, 64, 82, 255}
+                .color = get_current_theme()->accentColor
             }
         });
 

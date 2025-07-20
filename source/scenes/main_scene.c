@@ -1,6 +1,7 @@
 #include <jansson.h>
 #include <citro2d.h>
 #include "components/feed.h"
+#include "theming.h"
 #include "thirdparty/bluesky/bluesky.h"
 
 #include "scenes/main_scene.h"
@@ -145,7 +146,7 @@ static void main_layout(void) {
                 .childGap = 32,
                 .padding = {.left = 5, .right = 10}
             },
-            .border = {.width = {.top= 1 }, .color = {46, 64, 82, 255}},
+            .border = {.width = {.top= 1 }, .color = get_current_theme()->accentColor},
         }) {
             for (int i = 0; i < 5; i++) {
                 CLAY((Clay_ElementDeclaration){
@@ -154,7 +155,7 @@ static void main_layout(void) {
                         .imageData = &navIcons[i],
                     },
                     .aspectRatio = { iconDimensions.width / iconDimensions.height },
-                    .backgroundColor = disableNavButtons ? (Clay_Color){128, 128, 128, 255} : (Clay_Color){255, 255, 255, 255}
+                    .backgroundColor = disableNavButtons ? get_current_theme()->diminishedTextColor : get_current_theme()->textColor
                 }) {
                     Clay_OnHover(handleNavButton, i);
                 }

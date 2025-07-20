@@ -3,6 +3,7 @@
 #include "3ds/types.h"
 #include "c3d/renderqueue.h"
 #include "scenes/scene.h"
+#include "theming.h"
 #include <malloc.h>
 #include <math.h>
 #include <stdio.h>
@@ -149,14 +150,14 @@ int main() {
 
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         if (top != NULL) {
-            C2D_TargetClear(top, C2D_Color32(22, 30, 39, 255));
+            C2D_TargetClear(top, ClayColor_to_C2DColor(get_current_theme()->backgroundColor));
             C2D_SceneBegin(top);
 
             Clay_Citro2d_Render(&renderCommands, fonts, GFX_TOP);
         }
 
         if (bottom != NULL) {
-            C2D_TargetClear(bottom, C2D_Color32(22, 30, 39, 255));
+            C2D_TargetClear(bottom, ClayColor_to_C2DColor(get_current_theme()->backgroundColor));
             C2D_SceneBegin(bottom);
 
             C2D_ViewTranslate(-TOP_BOTTOM_DIFF, -TOP_HEIGHT);

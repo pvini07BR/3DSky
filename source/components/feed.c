@@ -7,6 +7,7 @@
 #include "components/post_view.h"
 #include "jansson.h"
 #include "string_utils.h"
+#include "theming.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
 #include <stdint.h>
 #include <string.h>
@@ -262,7 +263,7 @@ void feed_layout(Feed* data, float top_padding) {
             .width = {
                 .betweenChildren = CLAY_TOP_TO_BOTTOM
             },
-            .color = {46, 64, 82, 255}
+            .color = get_current_theme()->accentColor
         },
     }) {
         actualScrollValue = data->setScroll ? data->scrollValue : Clay_GetScrollOffset().y;
@@ -286,10 +287,10 @@ void feed_layout(Feed* data, float top_padding) {
                     .padding = { .bottom = 10, .top = 10 },
                     .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER}
                 },
-                .backgroundColor = Clay_Hovered() ? (Clay_Color){46, 64, 82, 255} : (Clay_Color){22, 30, 39, 255}
+                .backgroundColor = Clay_Hovered() ? get_current_theme()->accentColor : get_current_theme()->backgroundColor
             }) {
                 if (!data->scrolling) Clay_OnHover(onLoadMorePosts, (uintptr_t)data);
-                CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+                CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->textColor, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
             }
         } else {
             CLAY({
@@ -299,7 +300,7 @@ void feed_layout(Feed* data, float top_padding) {
                     .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER},
                 },
             }) {
-                CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+                CLAY_TEXT(CLAY_STRING("Loading posts..."), CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->textColor, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
             }
         }
     }

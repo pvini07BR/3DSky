@@ -1,6 +1,7 @@
 #include "components/post_view.h"
 #include "3ds/services/hid.h"
 #include "components/post.h"
+#include "theming.h"
 
 void post_view_init(PostView *data) {
     if (data == NULL) return;
@@ -29,7 +30,7 @@ void post_view_layout(PostView* data) {
             CLAY_TEXT(
                 postText,
                 CLAY_TEXT_CONFIG({
-                    .textColor = {255, 255, 255, 255},
+                    .textColor = get_current_theme()->textColor,
                     .fontSize = 15,
                     .fontId = 0
                 })
@@ -38,7 +39,7 @@ void post_view_layout(PostView* data) {
             CLAY_TEXT(
                 CLAY_STRING("There's no way I can show a NULL post."),
                 CLAY_TEXT_CONFIG({
-                    .textColor = {255, 255, 255, 255},
+                    .textColor = get_current_theme()->textColor,
                     .fontSize = 15,
                     .fontId = 0
                 })

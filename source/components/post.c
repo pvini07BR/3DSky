@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "defines.h"
+#include "theming.h"
 
 void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData), bool disable) {
     CLAY({
@@ -39,14 +40,14 @@ void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId
                 Clay_String displayName = (Clay_String) { .chars = post->displayName, .length = strlen(post->displayName) };
                 Clay_String handle = (Clay_String) { .chars = post->handle, .length = strlen(post->handle) };
 
-                CLAY_TEXT(displayName, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, .wrapMode = CLAY_TEXT_WRAP_NONE }));
-                CLAY_TEXT(handle, CLAY_TEXT_CONFIG({ .textColor = {128, 128, 128, 255}, .fontSize = 15, .fontId = 0, .wrapMode = CLAY_TEXT_WRAP_NONE }));
+                CLAY_TEXT(displayName, CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->textColor, .fontSize = 15, .fontId = 0, .wrapMode = CLAY_TEXT_WRAP_NONE }));
+                CLAY_TEXT(handle, CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->diminishedTextColor, .fontSize = 15, .fontId = 0, .wrapMode = CLAY_TEXT_WRAP_NONE }));
             }
             Clay_String postText = (Clay_String) { .chars = post->postText, .length = strlen(post->postText) };
             CLAY_TEXT(
                 postText,
                 CLAY_TEXT_CONFIG({
-                    .textColor = {255, 255, 255, 255},
+                    .textColor = get_current_theme()->textColor,
                     .fontSize = 15,
                     .fontId = 0
                 })

@@ -1,11 +1,9 @@
 #include "components/textedit.h"
 #include "defines.h"
+#include "theming.h"
 #include <3ds.h>
 #include <string.h>
 #include <stdlib.h>
-
-const Clay_Color TEXTEDIT_NORMAL_COLOR = (Clay_Color) {30, 41, 53, 255};
-const Clay_Color TEXTEDIT_HOVERED_COLOR = (Clay_Color) {40, 52, 64, 255};
 
 bool textedit_pressed = false;
 
@@ -67,14 +65,14 @@ void textedit_component(TextEditData* data) {
             .childAlignment = {.y = CLAY_ALIGN_Y_CENTER },
             .sizing = {CLAY_SIZING_FIXED(TOP_WIDTH / 1.6f)}
         },
-        .backgroundColor = Clay_Hovered() ? TEXTEDIT_HOVERED_COLOR : TEXTEDIT_NORMAL_COLOR,
+        .backgroundColor = Clay_Hovered() ? get_current_theme()->textEditHoveredColor : get_current_theme()->textEditNormalColor,
         .cornerRadius = {.topLeft = 8 }
     }) {
         Clay_OnHover(HandleTextEditInteraction, (intptr_t)data);
         CLAY_TEXT(
             text.length > 0 ? text : data->hintText,
             CLAY_TEXT_CONFIG({
-                .textColor = text.length > 0 ? (Clay_Color) {241, 243, 244, 255} : (Clay_Color) {117, 138, 161, 255},
+                .textColor = text.length > 0 ? get_current_theme()->textEditNormalTextColor : get_current_theme()->textEditHintTextColor,
                 .fontSize = 16,
                 .fontId = 0
             })

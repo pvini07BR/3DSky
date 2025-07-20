@@ -1,6 +1,7 @@
 #include "components/popup.h"
 #include "components/button.h"
 #include "defines.h"
+#include "theming.h"
 #include <3ds.h>
 #include <string.h>
 #include <stdlib.h>
@@ -71,7 +72,7 @@ void popup_layout(bool bottomScreen) {
                 .childGap = 10
             },
             .cornerRadius = {.topLeft = 8 },
-            .backgroundColor = {30, 41, 53, 255}
+            .backgroundColor = get_current_theme()->popupBackgroundColor
         }) {
             if (popup_text != NULL) {
                 Clay_String str = (Clay_String) {
@@ -80,7 +81,7 @@ void popup_layout(bool bottomScreen) {
                     .isStaticallyAllocated = false
                 };
 
-                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 16, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+                CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->textColor, .fontSize = 16, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
             }
             if (popupType != POPUP_TYPE_PROGRESS) {
                 CLAY({
@@ -120,7 +121,7 @@ void popup_layout(bool bottomScreen) {
                         .padding = CLAY_PADDING_ALL(2)
                     },
                     .border = {
-                        .color = {255, 255, 255, 255},
+                        .color = get_current_theme()->textColor,
                         .width = {
                             .top = 1,
                             .bottom = 1,
@@ -136,7 +137,7 @@ void popup_layout(bool bottomScreen) {
                                 .height = CLAY_SIZING_GROW(0)
                             }
                         },
-                        .backgroundColor = {255, 255, 255, 255},
+                        .backgroundColor = get_current_theme()->textColor,
                     });
                 }
             }

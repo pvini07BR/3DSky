@@ -5,6 +5,7 @@
 #include "avatar_img_cache.h"
 #include "components/feed.h"
 #include "jansson.h"
+#include "theming.h"
 #include "thirdparty/clay/clay.h"
 #include "thirdparty/bluesky/bluesky.h"
 
@@ -120,7 +121,7 @@ void profile_page_layout(ProfilePage *data) {
                         .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = !data->loaded ? CLAY_ALIGN_Y_CENTER : CLAY_ALIGN_Y_TOP }
                     }
                 }) {
-                    CLAY_TEXT(CLAY_STRING("Loading profile..."), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+                    CLAY_TEXT(CLAY_STRING("Loading profile..."), CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->textColor, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
                 }
             } else {
                 if (data->avatarImage != NULL) {
@@ -137,22 +138,22 @@ void profile_page_layout(ProfilePage *data) {
     
                 if (data->displayName != NULL) {
                     Clay_String str = (Clay_String) { .chars = data->displayName, .length = strlen(data->displayName) };
-                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, }));
+                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->textColor, .fontSize = 24, .fontId = 0, }));
                 }
     
                 if (data->handle != NULL) {
                     Clay_String str = (Clay_String) { .chars = data->handle, .length = strlen(data->handle) };
-                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {128, 128, 128, 255}, .fontSize = 16, .fontId = 0, }));
+                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->diminishedTextColor, .fontSize = 16, .fontId = 0, }));
                 }
     
                 if (data->followsText != NULL) {
                     Clay_String str = (Clay_String){.chars = data->followsText, .length = strlen(data->followsText)};
-                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, })); 
+                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->textColor, .fontSize = 15, .fontId = 0, })); 
                 }
     
                 if (data->description != NULL) {
                     Clay_String str = (Clay_String) { .chars = data->description, .length = strlen(data->description) };
-                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 15, .fontId = 0, }));
+                    CLAY_TEXT(str, CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->textColor, .fontSize = 15, .fontId = 0, }));
                 }
             }
         }
