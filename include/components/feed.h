@@ -2,6 +2,7 @@
 #define FEED_H
 
 #include "components/post.h"
+#include "components/post_view.h"
 #include "thirdparty/bluesky/bluesky.h"
 
 typedef enum {
@@ -14,6 +15,7 @@ typedef struct {
     Post posts[50];
     bool loaded;
     FeedType type;
+    PostView* postViewPtr;
     float scrollValue;
     bool setScroll;
     Thread loadingThreadHandle;
@@ -25,12 +27,7 @@ typedef struct {
     char* did;
 } Feed;
 
-typedef struct {
-    void* context;
-    Post* post;
-} PostCallbackData;
-
-void feed_init(Feed* feed, FeedType feed_type);
+void feed_init(Feed* feed, FeedType feed_type, PostView* postViewPtr);
 void feed_load(Feed* feed);
 void feed_layout(Feed* feed, float top_padding);
 void feed_free(Feed* feed);

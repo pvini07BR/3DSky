@@ -1,4 +1,5 @@
 #include "components/post.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include "defines.h"
@@ -12,7 +13,7 @@ void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId
             .childGap = 4
         }
     }) {
-        Clay_OnHover(onHoverFunction, (uintptr_t)post);
+        Clay_OnHover(onHoverFunction, (intptr_t)post);
 
         CLAY({
             .layout = {

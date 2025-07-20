@@ -5,6 +5,7 @@
 #include "thirdparty/bluesky/bluesky.h"
 #include "pages/timeline.h"
 
+/*
 void post_open_callback(void* data, Post* post) {
     if (data == NULL || post == NULL) return;
     TimelinePage* dat = (TimelinePage*)data;
@@ -16,13 +17,14 @@ void post_open_callback(void* data, Post* post) {
         dat->postView.opened = true;
     } 
 }
+*/
 
 void timeline_init(TimelinePage* data) {
     if (data == NULL) return;
 
     data->initialized = false,
     post_view_init(&data->postView);
-    feed_init(&data->feed, FEED_TYPE_TIMELINE);
+    feed_init(&data->feed, FEED_TYPE_TIMELINE, &data->postView);
 
     feed_load(&data->feed);
     data->initialized = true;

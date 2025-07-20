@@ -23,7 +23,6 @@ void post_view_layout(PostView* data) {
             .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_GROW() },
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
         },
-        .backgroundColor = (Clay_Color){0.0f, 0.0f, 0.0f, 1.0f}
     }) {
         if (data->post) {
             Clay_String postText = (Clay_String) { .chars = data->post->postText, .length = strlen(data->post->postText) };

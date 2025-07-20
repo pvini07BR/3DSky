@@ -3,9 +3,11 @@
 #include "avatar_img_cache.h"
 #include "c2d/base.h"
 #include "components/post.h"
+#include "components/post_view.h"
 #include "jansson.h"
 #include "string_utils.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
+#include <stdint.h>
 #include <string.h>
 
 bool load_more_posts_pressed = false;
@@ -21,7 +23,10 @@ void onPostHover(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_
     }
 
     if (post_pressed && hidKeysUp() & KEY_TOUCH) {
-        printf("Post pressed: %s\n", data->postText);
+        Feed* feedPtr = (Feed*)data->feedPtr;
+
+        feedPtr->setScroll = true;
+        post_view_set(feedPtr->postViewPtr, data);
         post_pressed = false;
     }
 }
@@ -193,15 +198,19 @@ void post_loading_thread(void* args) {
     feed->loaded = true;
 }
 
-void feed_init(Feed *feed, FeedType feed_type) {
+void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr) {
     if (feed == NULL) return;
 
+    for (int i = 0; i < 50; i++) {
+        feed->posts[i].feedPtr = feed;
+    }
     feed->pagOpts = (bs_client_pagination_opts){
         .cursor = NULL,
         .limit = 50
     };
     feed->type = feed_type;
     feed->loaded = false,
+    feed->postViewPtr = postViewPtr;
     feed->scrollValue = 0.0f;
     feed->setScroll = false;
     feed->loadingThreadHandle = NULL;

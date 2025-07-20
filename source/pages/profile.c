@@ -76,7 +76,7 @@ void loadProfileThread(void* args) {
 void profile_page_load(ProfilePage* data, const char* handle) {
     if (data == NULL) return;
 
-    feed_init(&data->feed, FEED_TYPE_AUTHOR);
+    feed_init(&data->feed, FEED_TYPE_AUTHOR, NULL);
 
     data->handle = handle;
     data->initialized = false;

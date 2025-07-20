@@ -3,8 +3,12 @@
 
 #include "thirdparty/clay/clay.h"
 #include <citro2d.h>
+#include <stdint.h>
 
 typedef struct {
+    // Can't include Feed type due to cyclic dependency
+    void* feedPtr;
+
     char* displayName;
     char* handle;
     char* postText;
