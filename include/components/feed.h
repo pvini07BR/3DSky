@@ -17,6 +17,8 @@ typedef struct {
     FeedType type;
     PostView* postViewPtr;
     float scrollValue;
+    float prevScroll;
+    bool scrolling;
     bool setScroll;
     Thread loadingThreadHandle;
     Thread avatarThreadHandle;

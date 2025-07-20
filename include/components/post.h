@@ -16,7 +16,7 @@ typedef struct {
     C2D_Image* avatarImage;
 } Post;
 
-void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData));
+void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData), bool disable);
 void post_free(Post* post);
 
 #endif

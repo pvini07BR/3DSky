@@ -4,7 +4,7 @@
 #include <string.h>
 #include "defines.h"
 
-void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData)) {
+void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData), bool disable) {
     CLAY({
         .layout = {
             .padding = CLAY_PADDING_ALL(10),
@@ -13,7 +13,7 @@ void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId
             .childGap = 4
         }
     }) {
-        Clay_OnHover(onHoverFunction, (intptr_t)post);
+        if (!disable) Clay_OnHover(onHoverFunction, (intptr_t)post);
 
         CLAY({
             .layout = {

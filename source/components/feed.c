@@ -1,5 +1,6 @@
 #include "components/feed.h"
 
+#include "3ds/services/hid.h"
 #include "avatar_img_cache.h"
 #include "c2d/base.h"
 #include "components/post.h"
@@ -26,7 +27,6 @@ void onPostHover(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_
     }
 
     if (post_pressed && hidKeysUp() & KEY_TOUCH) {
-
         feedPtr->setScroll = true;
         post_view_set(feedPtr->postViewPtr, data);
         post_pressed = false;
@@ -214,6 +214,8 @@ void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr) {
     feed->loaded = false,
     feed->postViewPtr = postViewPtr;
     feed->scrollValue = 0.0f;
+    feed->prevScroll = 0.0f;
+    feed->scrolling = false;
     feed->setScroll = false;
     feed->loadingThreadHandle = NULL;
     feed->avatarThreadHandle = NULL;
@@ -238,6 +240,7 @@ void feed_load(Feed* feed) {
 
 void feed_layout(Feed* data, float top_padding) {
     Clay_ElementId clayId = data->type == FEED_TYPE_TIMELINE ? CLAY_ID("timelineScroll") : CLAY_ID("authorFeedScroll");
+    float actualScrollValue = 0.0f;
 
     CLAY((Clay_ElementDeclaration){
         .id = clayId,
@@ -262,11 +265,17 @@ void feed_layout(Feed* data, float top_padding) {
             .color = {46, 64, 82, 255}
         },
     }) {
-        
+        actualScrollValue = data->setScroll ? data->scrollValue : Clay_GetScrollOffset().y;
+        float deltaScroll = actualScrollValue - data->prevScroll;
+        data->prevScroll = actualScrollValue;
+
+        if (deltaScroll <= -3.0f || deltaScroll >= 3.0f) data->scrolling = true;
+        if (data->scrolling && hidKeysUp() & KEY_TOUCH) data->scrolling = false;
+
         if (data->loaded) {
             for (int i = 0; i < 50; i++) {
                 if (data->posts[i].postText != NULL) {
-                    post_component(&data->posts[i], onPostHover);
+                    post_component(&data->posts[i], onPostHover, data->scrolling);
                 }
             }
             CLAY((Clay_ElementDeclaration){
@@ -279,7 +288,7 @@ void feed_layout(Feed* data, float top_padding) {
                 },
                 .backgroundColor = Clay_Hovered() ? (Clay_Color){46, 64, 82, 255} : (Clay_Color){22, 30, 39, 255}
             }) {
-                Clay_OnHover(onLoadMorePosts, (uintptr_t)data);
+                if (!data->scrolling) Clay_OnHover(onLoadMorePosts, (uintptr_t)data);
                 CLAY_TEXT(CLAY_STRING("Load more posts"), CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24, .fontId = 0, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
             }
         } else {
