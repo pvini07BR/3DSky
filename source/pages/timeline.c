@@ -41,34 +41,38 @@ void timeline_page_layout(TimelinePage *data) {
 
     CLAY({
         .layout = {
-            .sizing = { CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF + BOTTOM_WIDTH + 1), CLAY_SIZING_GROW() },
+            .sizing = {
+                data->postView.opened ? CLAY_SIZING_GROW() : CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF + BOTTOM_WIDTH + 1),
+                CLAY_SIZING_GROW()
+            },
             .layoutDirection = CLAY_LEFT_TO_RIGHT
         },
         .border = {
             .width = {
-                .right = 1
+                .right = data->postView.opened ? 0 : 1
             },
             .color = get_current_theme()->accentColor
         }
     }) {
-        // Empty space to push the posts to fit in the bottom screen
-        CLAY({
-            .layout = {
-                .sizing = { CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF), CLAY_SIZING_GROW() }
-            },
-            .border = {
-                .width = {
-                    .right = 1
+        if (!data->postView.opened) {
+            // Empty space to push the posts to fit in the bottom screen
+            CLAY({
+                .layout = {
+                    .sizing = { CLAY_SIZING_FIXED(TOP_BOTTOM_DIFF), CLAY_SIZING_GROW() }
                 },
-                .color = get_current_theme()->accentColor
-            }
-        });
-
-        // Where the posts will be
-        if (!data->postView.opened)
+                .border = {
+                    .width = {
+                        .right = 1
+                    },
+                    .color = get_current_theme()->accentColor
+                }
+            });
+    
+            // Where the posts will be
             feed_layout(&data->feed, TOP_HEIGHT);
-        else
+        } else {
             post_view_layout(&data->postView);
+        }
     }
 }
 

@@ -9,15 +9,17 @@
 #include "pages/timeline.h"
 
 #include "components/popup.h"
+#include "thirdparty/clay/clay_renderer_citro2d.h"
 
 static Scene main_scene;
 
 typedef enum {
     HOME = 0,
-    SEARCH = 1,
-    CHAT = 2,
-    NOTIFICATIONS = 3,
-    PROFILE = 4
+    PROFILE = 1,
+    //SEARCH = 1,
+    //CHAT = 2,
+    //NOTIFICATIONS = 3,
+    //PROFILE = 4
 } Pages;
 
 Pages currentPage = HOME;
@@ -31,7 +33,8 @@ bool disableNavButtons = true;
 C2D_SpriteSheet iconsSheet = NULL;
 C2D_SpriteSheet otherIconsSheet = NULL;
 
-C2D_Image navIcons[5];
+const unsigned int navIconsCount = 2;
+C2D_Image navIcons[2];
 
 Clay_LayoutConfig iconLayout = {
     .sizing = {
@@ -51,6 +54,7 @@ ProfilePage profileData;
 bool nav_button_pressed = false;
 
 void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
+    if (disableNavButtons) return;
     Pages page = (Pages)userData;
 
     if (!nav_button_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
@@ -86,9 +90,9 @@ static void main_init() {
     iconsSheet = C2D_SpriteSheetLoad("romfs:/icons.t3x");
     if (iconsSheet) {
         navIcons[HOME] = C2D_SpriteSheetGetImage(iconsSheet, 0);
-        navIcons[SEARCH] = C2D_SpriteSheetGetImage(iconsSheet, 1);
-        navIcons[CHAT] = C2D_SpriteSheetGetImage(iconsSheet, 2);
-        navIcons[NOTIFICATIONS] = C2D_SpriteSheetGetImage(iconsSheet, 3);
+        //navIcons[SEARCH] = C2D_SpriteSheetGetImage(iconsSheet, 1);
+        //navIcons[CHAT] = C2D_SpriteSheetGetImage(iconsSheet, 2);
+        //navIcons[NOTIFICATIONS] = C2D_SpriteSheetGetImage(iconsSheet, 3);
     }
 
     otherIconsSheet = C2D_SpriteSheetLoad("romfs:/othericons.t3x");
@@ -137,18 +141,18 @@ static void main_layout(void) {
         // Nav bar
         CLAY((Clay_ElementDeclaration){
             .layout = {
-                .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_FIXED(40)},
+                .sizing = {CLAY_SIZING_FIXED(BOTTOM_WIDTH + TOP_BOTTOM_DIFF), CLAY_SIZING_FIT()},
                 .layoutDirection = CLAY_LEFT_TO_RIGHT,
                 .childAlignment = {
                     .x = CLAY_ALIGN_X_CENTER,
                     .y = CLAY_ALIGN_Y_CENTER
                 },
-                .childGap = 32,
-                .padding = {.left = 5, .right = 10}
+                .childGap = BOTTOM_WIDTH - (iconDimensions.width * navIconsCount) - (iconDimensions.width * (navIconsCount * 2)),
+                .padding = {.left = TOP_BOTTOM_DIFF, .bottom = 5, .top = 5}
             },
             .border = {.width = {.top= 1 }, .color = get_current_theme()->accentColor},
         }) {
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < navIconsCount; i++) {
                 CLAY((Clay_ElementDeclaration){
                     .layout = iconLayout,
                     .image = {
