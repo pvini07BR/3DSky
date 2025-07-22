@@ -22,6 +22,10 @@ typedef struct {
     unsigned int likeCount;
     unsigned int quoteCount;
 
+    char* replyCountStr;
+    char* repostCountStr;
+    char* likeCountrStr;
+
     bool hasEmbed;
 
     char* displayName;
@@ -33,6 +37,7 @@ typedef struct {
 
 void post_init(Post* post, void* feedPtr, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon);
 void post_layout(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData), bool disable);
+void post_update_counts(Post* post);
 void post_free(Post* post);
 
 #endif

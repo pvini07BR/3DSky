@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "defines.h"
+#include "string_utils.h"
 #include "theming.h"
 
 void post_init(Post* post, void *feedPtr, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
@@ -15,7 +16,6 @@ void post_init(Post* post, void *feedPtr, C2D_Image* repliesIcon, C2D_Image* rep
     post->likeCount = 0;
     post->quoteCount = 0;
     post->hasEmbed = false;
-
     post->uri = NULL;
     post->createdAt = NULL;
     post->indexedAt = NULL;
@@ -24,22 +24,43 @@ void post_init(Post* post, void *feedPtr, C2D_Image* repliesIcon, C2D_Image* rep
     post->avatarUrl = NULL;
     post->postText = NULL;
     post->avatarImage = NULL;
+    post_update_counts(post);
 }
 
-void postIconLayout(C2D_Image* icon) {
+void postIconLayout(C2D_Image* icon, const char* str) {
     CLAY({
         .layout = {
-            .sizing = {
-                .width = CLAY_SIZING_FIXED(16),
-                .height = CLAY_SIZING_FIXED(16) 
-            }
+            .sizing = {CLAY_SIZING_FIT(), CLAY_SIZING_FIT()},
+            .layoutDirection = CLAY_LEFT_TO_RIGHT,
+            .childGap = 4
         },
-        .backgroundColor = get_current_theme()->diminishedTextColor,
-        .image = {
-            .imageData = icon,
-        },
-        .aspectRatio = { 16.0f / 16.0f },
-    });
+    }) {
+        CLAY({
+            .layout = {
+                .sizing = {
+                    .width = CLAY_SIZING_FIXED(16),
+                    .height = CLAY_SIZING_FIXED(16) 
+                }
+            },
+            .backgroundColor = get_current_theme()->diminishedTextColor,
+            .image = {
+                .imageData = icon,
+            },
+            .aspectRatio = { 16.0f / 16.0f },
+        });
+    
+        if (str) {
+            Clay_String txt = (Clay_String) { .chars = str, .length = strlen(str) };
+            CLAY_TEXT(
+            txt,
+            CLAY_TEXT_CONFIG({
+                    .textColor = get_current_theme()->diminishedTextColor,
+                    .fontSize = 15,
+                    .fontId = 0
+                })
+            );
+        }
+    }
 }
 
 void post_layout(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData), bool disable) {
@@ -65,8 +86,8 @@ void post_layout(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, C
 
         CLAY({
             .layout = {
+                .sizing = {CLAY_SIZING_FIT(), CLAY_SIZING_FIT()},
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                .childGap = 4
             }
         }) {
             CLAY({
@@ -115,30 +136,38 @@ void post_layout(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, C
                     .sizing = {CLAY_SIZING_FIT(), CLAY_SIZING_FIT()},
                     .layoutDirection = CLAY_LEFT_TO_RIGHT,
                     .childAlignment = {.y = CLAY_ALIGN_Y_CENTER},
-                    .childGap = 4
+                    .childGap = 64,
+                    .padding = {.top = 10}
                 },
             }) {
-                postIconLayout(post->repliesIcon);
-                postIconLayout(post->repostIcon);
-                postIconLayout(post->likeIcon);
+                postIconLayout(post->repliesIcon, post->replyCountStr);
+                postIconLayout(post->repostIcon, post->repostCountStr);
+                postIconLayout(post->likeIcon, post->likeCountrStr);
             }
         }
     }
 }
 
+void post_update_counts(Post* post) {
+    if (post == NULL) return;
+
+    if (post->replyCountStr) free(post->replyCountStr);
+    if (post->repostCountStr) free(post->repostCountStr);
+    if (post->likeCountrStr) free(post->likeCountrStr);
+
+    post->replyCountStr = formatted_string("%u", post->replyCount);
+    post->repostCountStr = formatted_string("%u", post->repostCount);
+    post->likeCountrStr = formatted_string("%u", post->likeCount);
+}
+
 void post_free(Post *post) {
     if (post == NULL) return;
 
-    if (post->displayName) {
-        free(post->displayName);
-    }
-    if (post->handle) {
-        free(post->handle);
-    }
-    if (post->postText) {
-        free(post->postText);
-    }
-    if (post->avatarUrl) {
-        free(post->avatarUrl);
-    }
+    if (post->displayName) free(post->displayName);
+    if (post->handle) free(post->handle);
+    if (post->postText) free(post->postText);
+    if (post->avatarUrl) free(post->avatarUrl);
+    if (post->replyCountStr) free(post->replyCountStr);
+    if (post->repostCountStr) free(post->repostCountStr);
+    if (post->likeCountrStr) free(post->likeCountrStr);
 }

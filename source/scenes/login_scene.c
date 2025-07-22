@@ -1,4 +1,5 @@
 #include "c2d/base.h"
+#include "string_utils.h"
 #include "sys/unistd.h"
 
 #include <citro2d.h>
@@ -85,9 +86,7 @@ void download_cert_file_thread() {
         fclose(pagefile);
 
         if (ret != CURLE_OK) {
-            size_t buffer_size = strlen("Error when downloading cert file: ") + strlen(curl_easy_strerror(ret)) + 1;
-            char* errorBuffer = malloc(buffer_size);
-            snprintf(errorBuffer, buffer_size, "Error at downloading cert file: %s", curl_easy_strerror(ret));
+            char* errorBuffer = formatted_string("Error when downloading cert file: %s", curl_easy_strerror(ret));
             show_popup_message(errorBuffer, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
             free(errorBuffer);
 
@@ -95,12 +94,9 @@ void download_cert_file_thread() {
             errorOcurred = true;
         }
     } else {
-        char* error_msg = strerror(errno);
-        size_t buffer_size = strlen("Error when opening file to download: ") + strlen(error_msg) + 1;
-        char* errorBuffer = malloc(buffer_size);
-        snprintf(errorBuffer, buffer_size, "Error when opening file to download: %s", error_msg);
-        show_popup_message(errorBuffer, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
-        free(errorBuffer);
+        char* error_msg = formatted_string("Error when opening file to download: %s", strerror(errno));
+        show_popup_message(error_msg, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
+        free(error_msg);
 
         errorOcurred = true;
     }
@@ -123,9 +119,7 @@ void loginThread(void *arg) {
     char bs_error_msg[256];
     int code = bs_client_init(username, password, bs_error_msg);
     if (code != 0) {
-        size_t buffer_size = strlen("Error when trying to log in: ") + strlen(bs_error_msg) + strlen("\n\nPlease make sure your handle and password are correct.") + 1;
-        char* errorBuffer = malloc(buffer_size);
-        snprintf(errorBuffer, buffer_size, "Error when trying to log in: %s\n\nPlease make sure your handle and password are correct.", bs_error_msg);
+        char* errorBuffer = formatted_string("Error when trying to log in: %s\n\nPlease make sure your handle and password are correct.", bs_error_msg);
         show_popup_message(errorBuffer, POPUP_TYPE_MESSAGE, NULL);
         free(errorBuffer);
     } else {

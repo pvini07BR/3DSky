@@ -78,6 +78,8 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
                 navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 2);
             }
 
+            Clay_Citro2d_ClearTextCacheAndBuffer();
+
             if (!timelineData.initialized)
                 timeline_init(&timelineData, &repliesIcon, &repostIcon, &likeIcon);
             break;
@@ -89,6 +91,8 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
                 navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 0);
                 navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 3);
             }
+
+            Clay_Citro2d_ClearTextCacheAndBuffer();
 
             if (!profileData.initialized)
                 profile_page_load(&profileData, bs_client_get_current_handle(), &repliesIcon, &repostIcon, &likeIcon);

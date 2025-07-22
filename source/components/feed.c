@@ -97,6 +97,8 @@ void feed_load_posts(Feed* feed, json_t* root) {
         feed->posts[i].likeCount = json_integer_value(json_object_get(post_data, "likeCount"));
         feed->posts[i].quoteCount = json_integer_value(json_object_get(post_data, "quoteCount"));
 
+        post_update_counts(&feed->posts[i]);
+
         // "Author" section of a post
         json_t* author = json_object_get(post_data, "author");
 
