@@ -173,6 +173,11 @@ void post_view_input(PostView *data, float deltaTime) {
 
     circlePosition circlePos;
     hidCircleRead(&circlePos);
+
+    u32 kHeld = hidKeysHeld();
+    if (kHeld & KEY_UP) circlePos.dy = 150;
+    if (kHeld & KEY_DOWN) circlePos.dy = -150;
+
     if (circlePos.dy > 10 || circlePos.dy < -10) {
         data->postViewScroll += circlePos.dy * deltaTime * 2.0f;
         if (data->postViewScroll > 0.0f) data->postViewScroll = 0.0f;
