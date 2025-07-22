@@ -9,13 +9,20 @@ typedef struct {
     // Can't include Feed type due to cyclic dependency
     void* feedPtr;
 
+    char* uri;
+    char* createdAt;
+    char* indexedAt;
+
+    bool hasEmbed;
+
     char* displayName;
     char* handle;
-    char* postText;
     char* avatarUrl;
+    char* postText;
     C2D_Image* avatarImage;
 } Post;
 
+void post_init(Post* post, void* feedPtr);
 void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData), bool disable);
 void post_free(Post* post);
 

@@ -10,6 +10,7 @@
 #include "theming.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 bool load_more_posts_pressed = false;
@@ -51,6 +52,21 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
     }
 }
 
+void set_json_string_field(json_t* obj, char** field) {
+    if (!obj) {
+        fprintf(stderr, "Error: JSON object is null.\n");
+        return;
+    };
+    if (*field) free(*field);
+    const char* str = json_string_value(obj);
+    if (str != NULL) {
+        *field = strdup(str);
+    } else {
+        fprintf(stderr, "Error: JSON string value is null.\n");
+        *field = NULL;
+    }
+}
+
 void feed_load_posts(Feed* feed, json_t* root) {
     json_t *posts_array = json_object_get(root, "feed");
     if (!json_is_array(posts_array)) { 
@@ -59,12 +75,7 @@ void feed_load_posts(Feed* feed, json_t* root) {
         return;
     }
     
-    json_t* cursor_json = json_object_get(root, "cursor");
-    const char* cursor = json_string_value(cursor_json);
-    if (cursor) {
-        if (feed->pagOpts.cursor) free(feed->pagOpts.cursor); 
-        feed->pagOpts.cursor = strdup(cursor);
-    }
+    set_json_string_field(json_object_get(root, "cursor"), &feed->pagOpts.cursor);
 
     Clay_Citro2d_ClearTextCacheAndBuffer();
 
@@ -72,32 +83,35 @@ void feed_load_posts(Feed* feed, json_t* root) {
         if (i >= 50) break;
         if (feed->stopLoadingThread) break;
 
-        if (feed->posts[i].displayName) free(feed->posts[i].displayName);
-        if (feed->posts[i].handle) free(feed->posts[i].handle);
-        if (feed->posts[i].postText) free(feed->posts[i].postText);
-        if (feed->posts[i].avatarUrl) free(feed->posts[i].avatarUrl);
+        feed->posts[i].avatarImage = NULL;
 
         json_t* post = json_array_get(posts_array, i);
-        
         json_t* post_data = json_object_get(post, "post");
+
+        set_json_string_field(json_object_get(post_data, "uri"), &feed->posts[i].uri);
+        set_json_string_field(json_object_get(post_data, "indexedAt"), &feed->posts[i].indexedAt);
+
+        // "Author" section of a post
         json_t* author = json_object_get(post_data, "author");
 
-        const char* displayName = json_string_value(json_object_get(author, "displayName"));
-        const char* handle = json_string_value(json_object_get(author, "handle"));
-
+        set_json_string_field(json_object_get(author, "displayName"), &feed->posts[i].displayName);
+        set_json_string_field(json_object_get(author, "handle"), &feed->posts[i].handle);
+        
+        char* avatarUrl = NULL;
+        set_json_string_field(json_object_get(author, "avatar"), &avatarUrl);
+        // Unlike the other fields, the avatar thumbnail URL is
+        // not bound to a JSON root, so we can just directly assign the pointer
+        // Don't worry, I'm sure it will be freed later
+        feed->posts[i].avatarUrl = replace_substring(avatarUrl, "avatar", "avatar_thumbnail");
+        
+        // "Record" section of a post
         json_t* record = json_object_get(post_data, "record");
 
-        const char* postText = json_string_value(json_object_get(record, "text"));
+        set_json_string_field(json_object_get(record, "text"), &feed->posts[i].postText);
+        set_json_string_field(json_object_get(record, "createdAt"), &feed->posts[i].createdAt);
 
-        const char* avatarUrl = json_string_value(json_object_get(author, "avatar"));
-        char* avatar_thumbnail_url = replace_substring(avatarUrl, "avatar", "avatar_thumbnail");
-
-        feed->posts[i].displayName = displayName ? strdup(displayName) : NULL;
-        feed->posts[i].handle = handle ? strdup(handle) : NULL;
-        feed->posts[i].postText = postText ? strdup(postText) : NULL;
-        feed->posts[i].avatarUrl = avatar_thumbnail_url ? strdup(avatar_thumbnail_url) : NULL;
-
-        feed->posts[i].avatarImage = NULL;
+        json_t* embed = json_object_get(post_data, "embed");
+        feed->posts[i].hasEmbed = embed != NULL;
     }
 }
 
@@ -204,9 +218,8 @@ void post_loading_thread(void* args) {
 void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr) {
     if (feed == NULL) return;
 
-    for (int i = 0; i < 50; i++) {
-        feed->posts[i].feedPtr = feed;
-    }
+    for (int i = 0; i < 50; i++) post_init(&feed->posts[i], feed);
+
     feed->pagOpts = (bs_client_pagination_opts){
         .cursor = NULL,
         .limit = 50
@@ -282,7 +295,7 @@ void feed_layout(Feed* data, float top_padding) {
             CLAY((Clay_ElementDeclaration){
                 .id = CLAY_ID("load_more_button"),
                 .layout = {
-                    .sizing = {CLAY_SIZING_GROW(), CLAY_SIZING_GROW()},
+                    .sizing = {CLAY_SIZING_GROW(), CLAY_SIZING_FIT()},
                     .layoutDirection = CLAY_TOP_TO_BOTTOM,
                     .padding = { .bottom = 10, .top = 10 },
                     .childAlignment = {.x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER}

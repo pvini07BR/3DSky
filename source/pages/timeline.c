@@ -24,7 +24,7 @@ void timeline_init(TimelinePage* data) {
     if (data == NULL) return;
 
     data->initialized = false,
-    post_view_init(&data->postView);
+    post_view_init(&data->postView, CLAY_ID("timelinePostViewHeader"), CLAY_ID("timelinePostViewContainer"));
     feed_init(&data->feed, FEED_TYPE_TIMELINE, &data->postView);
 
     feed_load(&data->feed);

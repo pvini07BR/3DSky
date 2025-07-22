@@ -5,10 +5,13 @@
 #include "theming.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
 
-void post_view_init(PostView *data) {
+void post_view_init(PostView *data, Clay_ElementId headerId, Clay_ElementId containerId) {
     if (data == NULL) return;
     data->post = NULL;
     data->opened = false;
+    data->headerId = headerId;
+    data->containerId = containerId;
+    data->postViewScroll = 0.0f;
 }
 
 void post_view_set(PostView* data, Post* post) {
@@ -31,7 +34,7 @@ void post_view_layout(PostView* data) {
         },
     }) {
         CLAY({
-            .id = CLAY_ID("postViewHeader"),
+            .id = data->headerId,
             .layout = {
                 .sizing = { CLAY_SIZING_GROW(), CLAY_SIZING_FIT() },
                 .layoutDirection = CLAY_LEFT_TO_RIGHT,
@@ -86,7 +89,7 @@ void post_view_layout(PostView* data) {
                 }
             }) {
                 CLAY({
-                    .id = CLAY_ID("containerForMeasuring"),
+                    .id = data->containerId,
                     .layout = {
                         .sizing = { CLAY_SIZING_FIT(), CLAY_SIZING_FIT() },
                         .layoutDirection = CLAY_TOP_TO_BOTTOM,
@@ -137,6 +140,11 @@ void post_view_layout(PostView* data) {
                             })
                         );
                     }
+
+                    if (data->post->createdAt) {
+                        Clay_String createdAt = (Clay_String) { .chars = data->post->createdAt, .length = strlen(data->post->createdAt) };
+                        CLAY_TEXT(createdAt, CLAY_TEXT_CONFIG({ .textColor = get_current_theme()->diminishedTextColor, .fontSize = 16, .fontId = 0 }));
+                    }
                 }
             }
         }
@@ -152,8 +160,8 @@ void post_view_input(PostView *data, float deltaTime) {
         data->opened = false;
     }
     
-    Clay_ElementData headerData = Clay_GetElementData(CLAY_ID("postViewHeader"));
-    Clay_ElementData containerData = Clay_GetElementData(CLAY_ID("containerForMeasuring"));
+    Clay_ElementData headerData = Clay_GetElementData(data->headerId);
+    Clay_ElementData containerData = Clay_GetElementData(data->containerId);
 
     float scrollAreaHeight = 0.0f;
     if (headerData.found) scrollAreaHeight = (TOP_HEIGHT - headerData.boundingBox.height - 16); // 16 is to account for the padding

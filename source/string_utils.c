@@ -47,21 +47,15 @@ char* replace_substring(const char* original, const char* target, const char* re
 }
 
 char* extract_filename(const char* url) {
-    if (url == NULL) {
-        return NULL;
-    }
+    if (url == NULL) return NULL;
 
     const char* lastSlash = strrchr(url, '/');
-    if (!lastSlash) {
-        return NULL;
-    }
+    if (!lastSlash) return NULL;
 
     lastSlash++;
 
     const char* suffix = strstr(lastSlash, "@jpeg");
-    if (!suffix) {
-        return NULL;
-    }
+    if (!suffix) return NULL;
 
     size_t filenameLength = suffix - lastSlash;
 
