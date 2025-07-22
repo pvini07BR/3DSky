@@ -1,4 +1,5 @@
 #include "thirdparty/clay/clay_renderer_citro2d.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -21,6 +22,9 @@ TextCacheEntry* textCache = NULL;
 
 static C2D_TextBuf textGlyphBuffer = NULL;
 
+Clay_BoundingBox scissorBox;
+bool scissor = false;
+
 uint32_t hash_slice(const char *slice, size_t len) {
     uint32_t hash = 5381;
     for (size_t i = 0; i < len; i++) {
@@ -30,35 +34,50 @@ uint32_t hash_slice(const char *slice, size_t len) {
 }
 
 C2D_Text* get_cached_text(C2D_Font fontToUse, const char *slice, size_t len) {
-    char key[16];
-    snprintf(key, sizeof(key), "%08x", hash_slice(slice, len));
+    char* key = formatted_string("%08x", hash_slice(slice, len));
 
     TextCacheEntry *entry = NULL;
     HASH_FIND_STR(textCache, key, entry);
     if (entry) {
+        free(key);
         return &entry->obj;
     }
 
     entry = malloc(sizeof(TextCacheEntry));
     entry->key = strdup(key);
+    free(key);
 
     char *temp_buf = malloc(len + 1);
     memcpy(temp_buf, slice, len);
     temp_buf[len] = '\0';
 
-    if (textGlyphBuffer == NULL) {
-        textGlyphBuffer = C2D_TextBufNew(GLYPH_BUFFER_SIZE);
+    if (textGlyphBuffer == NULL) textGlyphBuffer = C2D_TextBufNew(GLYPH_BUFFER_SIZE);
+
+    const char* result = C2D_TextFontParse(&entry->obj, fontToUse, textGlyphBuffer, temp_buf);
+    if (result) {
+        if (*result != '\0') {
+            fprintf(stderr, "[ERROR]: C2D_TextFontParse failed due to full glyph buffer: %s\n", temp_buf);
+        }
+    } else {
+        fprintf(stderr, "[ERROR]: C2D_TextFontParse failed to parse text: %s\n", temp_buf);
     }
-    C2D_TextFontParse(&entry->obj, fontToUse, textGlyphBuffer, temp_buf);
+
     C2D_TextOptimize(&entry->obj);
 
-    //printf("New text object: %s\nUsed glyphs: %d\n", temp_buf, C2D_TextBufGetNumGlyphs(textBuf));
+    printf("New text object: %s\nUsed glyphs: %d\n", temp_buf, C2D_TextBufGetNumGlyphs(textGlyphBuffer));
 
     free(temp_buf);
 
     HASH_ADD_KEYPTR(hh, textCache, entry->key, strlen(entry->key), entry);
 
     return &entry->obj;
+}
+
+bool collides(Clay_BoundingBox* a, Clay_BoundingBox* b) {
+    return (a->x < b->x + b->width &&
+            a->x + a->width > b->x &&
+            a->y < b->y + b->height &&
+            a->y + a->height > b->y);
 }
 
 bool is_visible(gfxScreen_t screen, Clay_BoundingBox* boundingBox) {
@@ -126,11 +145,15 @@ void BeginScissor(gfxScreen_t screen, Clay_BoundingBox* boundingBox) {
             SCREEN_WIDTH
         );
     }
+
+    scissorBox = *boundingBox;
+    scissor = true;
 }
 
 void EndScissor() {
     C2D_Flush();
     C3D_SetScissor(GPU_SCISSOR_DISABLE, 0, 0, 0, 0);
+    scissor = false;
 }
 
 void Clay_Citro2d_Init() {
@@ -153,7 +176,7 @@ void Clay_Citro2d_Render(Clay_RenderCommandArray *renderCommands, C2D_Font* font
         Clay_BoundingBox boundingBox = renderCommand->boundingBox;
 
         if (renderCommand->commandType != CLAY_RENDER_COMMAND_TYPE_SCISSOR_START && renderCommand->commandType != CLAY_RENDER_COMMAND_TYPE_SCISSOR_END) {
-            if (!is_visible(screen, &boundingBox)) {
+            if (!is_visible(screen, &boundingBox) || (scissor && !collides(&boundingBox, &scissorBox))) {
                 continue;
             }
         }
