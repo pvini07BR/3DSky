@@ -91,6 +91,12 @@ void feed_load_posts(Feed* feed, json_t* root) {
         set_json_string_field(json_object_get(post_data, "uri"), &feed->posts[i].uri);
         set_json_string_field(json_object_get(post_data, "indexedAt"), &feed->posts[i].indexedAt);
 
+        // Getting likes, reposts, replies and quotes counts
+        feed->posts[i].replyCount = json_integer_value(json_object_get(post_data, "replyCount"));
+        feed->posts[i].repostCount = json_integer_value(json_object_get(post_data, "repostCount"));
+        feed->posts[i].likeCount = json_integer_value(json_object_get(post_data, "likeCount"));
+        feed->posts[i].quoteCount = json_integer_value(json_object_get(post_data, "quoteCount"));
+
         // "Author" section of a post
         json_t* author = json_object_get(post_data, "author");
 
@@ -110,6 +116,7 @@ void feed_load_posts(Feed* feed, json_t* root) {
         set_json_string_field(json_object_get(record, "text"), &feed->posts[i].postText);
         set_json_string_field(json_object_get(record, "createdAt"), &feed->posts[i].createdAt);
 
+        // "Embed" section of a post
         json_t* embed = json_object_get(post_data, "embed");
         feed->posts[i].hasEmbed = embed != NULL;
     }

@@ -13,6 +13,11 @@ typedef struct {
     char* createdAt;
     char* indexedAt;
 
+    unsigned int replyCount;
+    unsigned int repostCount;
+    unsigned int likeCount;
+    unsigned int quoteCount;
+
     bool hasEmbed;
 
     char* displayName;

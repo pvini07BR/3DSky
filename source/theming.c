@@ -1,8 +1,8 @@
 #include "theming.h"
 
 static Theme currentTheme = {
-    .textColor = {255, 255, 255, 255},
-    .diminishedTextColor = {128, 128, 128, 255},
+    .textColor = {241, 243, 245, 255},
+    .diminishedTextColor = {147, 165, 183, 255},
 
     .backgroundColor = {22, 30, 39, 255},
     .accentColor = {46, 64, 82, 255},
