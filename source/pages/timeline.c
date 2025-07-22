@@ -31,9 +31,9 @@ void timeline_init(TimelinePage* data) {
     data->initialized = true;
 }
 
-void timeline_update(TimelinePage* data) {
+void timeline_update(TimelinePage* data, float deltaTime) {
     if (data == NULL) return;
-    post_view_input(&data->postView);
+    post_view_input(&data->postView, deltaTime);
 }
 
 void timeline_page_layout(TimelinePage *data) {

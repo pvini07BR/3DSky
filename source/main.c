@@ -140,7 +140,7 @@ int main() {
         }
 
         Scene* current = get_current_scene();
-        if (current != NULL) current->update();
+        if (current != NULL) current->update(deltaTime);
 
         Clay_BeginLayout();
 

@@ -213,7 +213,7 @@ static void login_layout(void) {
     popup_layout(true);
 }
 
-static void login_update(void) {
+static void login_update(float deltaTime) {
     disableLogin = downloading_cert_file || logging_in || is_popup_visible() || login_successful;
 
     handleData.disable = disableLogin;

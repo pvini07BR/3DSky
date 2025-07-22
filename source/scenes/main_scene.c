@@ -170,7 +170,7 @@ static void main_layout(void) {
     popup_layout(true);
 }
 
-static void main_update(void) {
+static void main_update(float deltaTime) {
     switch(currentPage) {
         case HOME:
             disableNavButtons = !timelineData.feed.loaded;
@@ -182,7 +182,7 @@ static void main_update(void) {
             break;
     }
 
-    timeline_update(&timelineData);
+    timeline_update(&timelineData, deltaTime);
 }
 
 static void main_unload(void) {

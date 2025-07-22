@@ -12,7 +12,7 @@ typedef struct {
 } TimelinePage;
 
 void timeline_init(TimelinePage* data);
-void timeline_update(TimelinePage* data);
+void timeline_update(TimelinePage* data, float deltaTime);
 void timeline_page_layout(TimelinePage* data);
 void timeline_free(TimelinePage* data);
 
