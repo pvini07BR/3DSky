@@ -25,12 +25,6 @@ typedef enum {
 
 Pages currentPage = HOME;
 
-// So, there was a issue where the program would crash or the JSON strings would get messed up
-// if both the timeline and the profile were being loaded at the same time. The simplest and 
-// stupidest solution to this problem was to just simply disable the nav buttons while the
-// current page is being loaded.
-bool disableNavButtons = true;
-
 C2D_SpriteSheet navBarIconsSheet = NULL;
 C2D_SpriteSheet postIconsSheet = NULL;
 
@@ -59,7 +53,6 @@ ProfilePage profileData;
 bool nav_button_pressed = false;
 
 void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
-    if (disableNavButtons) return;
     Pages page = (Pages)userData;
 
     if (!nav_button_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
@@ -183,7 +176,7 @@ static void main_layout(float deltaTime) {
                         .imageData = &navIcons[i],
                     },
                     .aspectRatio = { iconDimensions.width / iconDimensions.height },
-                    .backgroundColor = disableNavButtons ? get_current_theme()->diminishedTextColor : get_current_theme()->textColor
+                    .backgroundColor = get_current_theme()->textColor
                 }) {
                     Clay_OnHover(handleNavButton, i);
                 }
@@ -195,17 +188,6 @@ static void main_layout(float deltaTime) {
 }
 
 static void main_update(float deltaTime) {
-    switch(currentPage) {
-        case HOME:
-            disableNavButtons = !timelineData.feed.loaded;
-            break;
-        case PROFILE:
-            disableNavButtons = !profileData.loaded || !profileData.feed.loaded;
-            break;
-        default:
-            break;
-    }
-
     timeline_update(&timelineData, deltaTime);
 }
 

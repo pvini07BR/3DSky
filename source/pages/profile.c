@@ -12,6 +12,16 @@
 #include "defines.h"
 #include "string_utils.h"
 
+void loadProfilePostsThread(void* args) {
+    if (args == NULL) return;
+    ProfilePage* data = (ProfilePage*)args;
+    if (data == NULL) return;
+
+    feed_load(&data->feed);
+
+    threadExit(0);
+}
+
 void loadProfileThread(void* args) {
     if (args == NULL) return;
     ProfilePage* data = (ProfilePage*)args;
@@ -40,7 +50,7 @@ void loadProfileThread(void* args) {
     if (did) {
         if (data->feed.did) free(data->feed.did);
         data->feed.did = strdup(did);
-        feed_load(&data->feed);
+        data->postsLoadingThreadHnd = threadCreate(loadProfilePostsThread, data, (16 * 1024), 0x3f, -2, true);
     }
 
     if (data->displayName) free(data->displayName);
@@ -72,6 +82,8 @@ void loadProfileThread(void* args) {
     json_decref(root);
 
     data->loaded = true;
+
+    threadExit(0);
 }
 
 void profile_page_load(ProfilePage* data, const char* handle, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
@@ -91,6 +103,7 @@ void profile_page_load(ProfilePage* data, const char* handle, C2D_Image* replies
     data->postsCount = 0;
 
     data->loadingThreadHandle = threadCreate(loadProfileThread, data, (16 * 1024), 0x3f, -2, true);
+    data->postsLoadingThreadHnd = NULL;
     data->initialized = true;
 }
 
@@ -181,9 +194,8 @@ void profile_page_layout(ProfilePage *data, float deltaTime) {
 void profile_page_free(ProfilePage* data) {
     feed_free(&data->feed);
 
-    if (data->loadingThreadHandle) {
-        threadJoin(data->loadingThreadHandle, U64_MAX);
-    }
+    if (data->loadingThreadHandle) threadJoin(data->loadingThreadHandle, U64_MAX);
+    if (data->postsLoadingThreadHnd) threadJoin(data->postsLoadingThreadHnd, U64_MAX);
     
     if (data->followsText) free(data->followsText);
     if (data->displayName) free(data->displayName);

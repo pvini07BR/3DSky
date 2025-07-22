@@ -71,10 +71,11 @@
     }
 
 #define CALL_CLEANUP \
+    curl_easy_cleanup(curl); \
     curl_slist_free_all(chunk); \
     free(url);
 
-static CURL *curl = NULL;
+//static CURL *curl = NULL;
 static char did[256];
 static char token[400];
 static char cur_handle[256];
@@ -83,16 +84,16 @@ static char token_header[TOKEN_HEADER_SIZE];
 
 /**
  *
- */
-static int
-bs_client_pagination_opts_validate(const bs_client_pagination_opts *opts)
-{
+ static int
+ bs_client_pagination_opts_validate(const bs_client_pagination_opts *opts)
+ {
     if (opts->limit > 100) {
         return BS_CLIENT_PAGINATION_ERR_OVER_LIMIT;
     }
     
     return 0;
 }
+*/
 
 /**
  * Write a received response into a response type.
@@ -184,6 +185,7 @@ bs_client_authenticate(const char *handle, const char *app_password)
         return NULL;
     }
 
+    CURL* curl = curl_easy_init();
     SET_BASIC_CURL_CONFIG;
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
@@ -229,6 +231,7 @@ bs_client_resolve_handle(const char *handle)
     strcat(url, "?handle=");
     strcat(url, handle);
 
+    CURL* curl = curl_easy_init();
     SET_BASIC_CURL_CONFIG;
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
 
@@ -253,7 +256,8 @@ bs_client_init(const char *handle, const char *app_password, char *error)
 
     strcpy(cur_handle, handle);
 
-    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl_global_init(CURL_GLOBAL_DEFAULT | CURL_VERSION_THREADSAFE);
+    /*
     curl = curl_easy_init();
     if (!curl) {
         if (error) {
@@ -261,13 +265,14 @@ bs_client_init(const char *handle, const char *app_password, char *error)
         }
         return BS_CLIENT_INIT_ERR_MEM;
     }
+    */
 
     bs_client_response_t *res = bs_client_authenticate(handle, app_password);
     if (!res) {
         if (error) {
             strcpy(error, "Failed to allocate memory for authentication response");
         }
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
         curl_global_cleanup();
         return BS_CLIENT_INIT_ERR_MEM;
     }
@@ -278,7 +283,7 @@ bs_client_init(const char *handle, const char *app_password, char *error)
             error[strlen(res->err_msg)] = '\0';
         }
         bs_client_response_free(res);
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
         curl_global_cleanup();
         return BS_CLIENT_INIT_ERR_AUTH;
     }
@@ -288,7 +293,7 @@ bs_client_init(const char *handle, const char *app_password, char *error)
             strcpy(error, "No response received from server");
         }
         bs_client_response_free(res);
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
         curl_global_cleanup();
         return BS_CLIENT_INIT_ERR_AUTH;
     }
@@ -303,7 +308,7 @@ bs_client_init(const char *handle, const char *app_password, char *error)
             error[strlen(j_error.text)] = '\0';
         }
         bs_client_response_free(res);
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
         curl_global_cleanup();
         return BS_CLIENT_INIT_ERR_JSON;
     }
@@ -316,7 +321,7 @@ bs_client_init(const char *handle, const char *app_password, char *error)
         }
         json_decref(root);
         bs_client_response_free(res);
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
         curl_global_cleanup();
         return BS_CLIENT_INIT_ERR_JSON;
     }
@@ -330,7 +335,7 @@ bs_client_init(const char *handle, const char *app_password, char *error)
         }
         json_decref(root);
         bs_client_response_free(res);
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
         curl_global_cleanup();
         return BS_CLIENT_INIT_ERR_AUTH;
     }
@@ -347,7 +352,7 @@ bs_client_init(const char *handle, const char *app_password, char *error)
             strcpy(error, res ? (res->err_msg ? res->err_msg : "Failed to resolve handle") : "Failed to allocate memory");
         }
         if (res) bs_client_response_free(res);
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
         curl_global_cleanup();
         return BS_CLIENT_INIT_ERR_AUTH;
     }
@@ -359,7 +364,7 @@ bs_client_init(const char *handle, const char *app_password, char *error)
             error[strlen(j_error.text)] = '\0';
         }
         bs_client_response_free(res);
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
         curl_global_cleanup();
         return BS_CLIENT_INIT_ERR_JSON;
     }
@@ -371,7 +376,7 @@ bs_client_init(const char *handle, const char *app_password, char *error)
         }
         json_decref(root);
         bs_client_response_free(res);
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
         curl_global_cleanup();
         return BS_CLIENT_INIT_ERR_JSON;
     }
@@ -416,6 +421,7 @@ bs_client_post(const char *msg)
     json_object_set(root, "record", record);
     char *data = json_dumps(root, 0);
 
+    CURL* curl = curl_easy_init();
     SET_BASIC_CURL_CONFIG;
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
@@ -444,6 +450,7 @@ bs_client_profile_get(const char *handle)
     chunk = curl_slist_append(chunk, BS_REQ_JSON_HEADER);
     chunk = curl_slist_append(chunk, token_header);
 
+    CURL* curl = curl_easy_init();
     char *escaped_handle = curl_easy_escape(curl, handle, strlen(handle));
 
     char *url = calloc(DEFAULT_URL_SIZE, sizeof(char));
@@ -477,6 +484,8 @@ bs_client_follows_get(const char *handle,
 {
     bs_client_response_t *response = bs_client_response_new();
     struct curl_slist *chunk = NULL;
+
+    CURL* curl = curl_easy_init();
 
     chunk = curl_slist_append(chunk, BS_REQ_JSON_HEADER);
     chunk = curl_slist_append(chunk, token_header);
@@ -540,6 +549,8 @@ bs_client_followers_get(const char *handle,
     strcat(url, "?actor=");
     strcat(url, handle);
 
+    CURL* curl = curl_easy_init();
+
     if (opts != NULL) {
         if (opts->limit != 0 && opts->limit >= 50) {
             if (opts->limit > 100) {
@@ -582,6 +593,8 @@ bs_client_profile_preferences()
     bs_client_response_t *response = bs_client_response_new();
     struct curl_slist *chunk = NULL;
 
+    CURL* curl = curl_easy_init();
+
     chunk = curl_slist_append(chunk, BS_REQ_JSON_HEADER);
     chunk = curl_slist_append(chunk, token_header);
 
@@ -608,6 +621,8 @@ bs_client_timeline_get(const bs_client_pagination_opts *opts)
 
     chunk = curl_slist_append(chunk, BS_REQ_JSON_HEADER);
     chunk = curl_slist_append(chunk, token_header);
+
+    CURL* curl = curl_easy_init();
 
     char *url = calloc(DEFAULT_URL_SIZE, sizeof(char));
     strcpy(url, GET_TIMELINE_URL);
@@ -657,6 +672,8 @@ bs_client_author_feed_get(const char *did,
 
     chunk = curl_slist_append(chunk, BS_REQ_JSON_HEADER);
     chunk = curl_slist_append(chunk, token_header);
+
+    CURL* curl = curl_easy_init();
 
     char *url = calloc(DEFAULT_URL_SIZE, sizeof(char));
     strcpy(url, GET_AUTHOR_FEED);
@@ -709,6 +726,8 @@ bs_client_handle_likes_get(const char *handle,
     chunk = curl_slist_append(chunk, BS_REQ_JSON_HEADER);
     chunk = curl_slist_append(chunk, token_header);
 
+    CURL* curl = curl_easy_init();
+
     char *url = calloc(DEFAULT_URL_SIZE, sizeof(char));
     strcpy(url, GET_ACTOR_LIKES_URL);
     strcat(url, "?actor=");
@@ -759,6 +778,8 @@ bs_client_likes_get(const char *handle, const bs_client_pagination_opts *opts)
     chunk = curl_slist_append(chunk, BS_REQ_JSON_HEADER);
     chunk = curl_slist_append(chunk, token_header);
 
+    CURL* curl = curl_easy_init();
+
     char *url = calloc(DEFAULT_URL_SIZE, sizeof(char));
     strcpy(url, GET_LIKES_URL);
     strcat(url, "?uri=");
@@ -803,7 +824,6 @@ bs_client_likes_get(const char *handle, const bs_client_pagination_opts *opts)
 void
 bs_client_free()
 {
-    curl_easy_cleanup(curl);
     curl_global_cleanup();
 }
 

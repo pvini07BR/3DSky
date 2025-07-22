@@ -64,7 +64,7 @@ C2D_Text* get_cached_text(C2D_Font fontToUse, const char *slice, size_t len) {
 
     C2D_TextOptimize(&entry->obj);
 
-    printf("New text object: %s\nUsed glyphs: %d\n", temp_buf, C2D_TextBufGetNumGlyphs(textGlyphBuffer));
+    //printf("New text object: %s\nUsed glyphs: %d\n", temp_buf, C2D_TextBufGetNumGlyphs(textGlyphBuffer));
 
     free(temp_buf);
 

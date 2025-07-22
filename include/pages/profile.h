@@ -23,6 +23,7 @@ typedef struct {
     Feed feed;
 
     Thread loadingThreadHandle;
+    Thread postsLoadingThreadHnd;
 
 } ProfilePage;
 
