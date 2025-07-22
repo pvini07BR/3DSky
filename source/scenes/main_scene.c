@@ -110,7 +110,7 @@ static void main_init() {
     };
 }
 
-static void main_layout(void) {
+static void main_layout(float deltaTime) {
     CLAY((Clay_ElementDeclaration){
         .layout = {
             .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
@@ -128,10 +128,10 @@ static void main_layout(void) {
         }) {
             switch (currentPage) {
                 case HOME:
-                    timeline_page_layout(&timelineData);
+                    timeline_page_layout(&timelineData, deltaTime);
                     break;
                 case PROFILE:
-                    profile_page_layout(&profileData);
+                    profile_page_layout(&profileData, deltaTime);
                     break;
                 default:
                     break;

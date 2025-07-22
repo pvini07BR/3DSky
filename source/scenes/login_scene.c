@@ -167,7 +167,7 @@ static void login_init(void) {
     #endif
 }
 
-static void login_layout(void) {
+static void login_layout(float deltaTime) {
     CLAY({
         .layout = {
             .sizing = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},

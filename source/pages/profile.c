@@ -94,7 +94,7 @@ void profile_page_load(ProfilePage* data, const char* handle) {
     data->initialized = true;
 }
 
-void profile_page_layout(ProfilePage *data) {
+void profile_page_layout(ProfilePage *data, float deltaTime) {
     if (data == NULL) return; 
 
     // Profile information layout on the top and posts on the bottom

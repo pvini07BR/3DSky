@@ -13,7 +13,7 @@ typedef struct {
 
 void timeline_init(TimelinePage* data);
 void timeline_update(TimelinePage* data, float deltaTime);
-void timeline_page_layout(TimelinePage* data);
+void timeline_page_layout(TimelinePage* data, float deltaTime);
 void timeline_free(TimelinePage* data);
 
 #endif

@@ -28,7 +28,7 @@ typedef struct {
 
 void profile_page_init(ProfilePage* data);
 void profile_page_load(ProfilePage* data, const char* handle);
-void profile_page_layout(ProfilePage* data);
+void profile_page_layout(ProfilePage* data, float deltaTime);
 void profile_page_free(ProfilePage* data);
 
 #endif

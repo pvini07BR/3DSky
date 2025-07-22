@@ -1,7 +1,6 @@
 #include "components/post_view.h"
 #include "3ds/services/hid.h"
 #include "components/post.h"
-#include "defines.h"
 #include "stdio.h"
 #include "theming.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
@@ -152,13 +151,12 @@ void post_view_input(PostView *data, float deltaTime) {
     if (kDown & KEY_B && data->opened) {
         data->opened = false;
     }
-
     
     Clay_ElementData headerData = Clay_GetElementData(CLAY_ID("postViewHeader"));
     Clay_ElementData containerData = Clay_GetElementData(CLAY_ID("containerForMeasuring"));
 
     float scrollAreaHeight = 0.0f;
-    if (headerData.found) scrollAreaHeight = (TOP_HEIGHT - headerData.boundingBox.height - 16);
+    if (headerData.found) scrollAreaHeight = (TOP_HEIGHT - headerData.boundingBox.height - 16); // 16 is to account for the padding
     if (containerData.found) {
         if (containerData.boundingBox.height < scrollAreaHeight) {
             return;
@@ -172,7 +170,7 @@ void post_view_input(PostView *data, float deltaTime) {
         if (data->postViewScroll > 0.0f) data->postViewScroll = 0.0f;
 
         if (containerData.found && headerData.found) {
-            float bound = -containerData.boundingBox.height + scrollAreaHeight;    // 16 is to account for the padding
+            float bound = -containerData.boundingBox.height + scrollAreaHeight;
             if (data->postViewScroll < bound) data->postViewScroll = bound;
         }
     }

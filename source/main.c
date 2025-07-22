@@ -144,7 +144,7 @@ int main() {
 
         Clay_BeginLayout();
 
-        if (current != NULL) current->layout();
+        if (current != NULL) current->layout(deltaTime);
 
         Clay_RenderCommandArray renderCommands = Clay_EndLayout();
 

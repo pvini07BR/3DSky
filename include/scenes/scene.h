@@ -7,7 +7,7 @@ typedef struct {
     void (*init)(void);
     void (*update)(float deltaTime);
 
-    void (*layout)(void);
+    void (*layout)(float deltaTime);
 
     void (*unload)(void);
 } Scene;

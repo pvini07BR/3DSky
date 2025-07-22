@@ -33,10 +33,9 @@ void timeline_init(TimelinePage* data) {
 
 void timeline_update(TimelinePage* data, float deltaTime) {
     if (data == NULL) return;
-    post_view_input(&data->postView, deltaTime);
 }
 
-void timeline_page_layout(TimelinePage *data) {
+void timeline_page_layout(TimelinePage *data, float deltaTime) {
     if (data == NULL) return;
 
     CLAY({
@@ -74,6 +73,8 @@ void timeline_page_layout(TimelinePage *data) {
             post_view_layout(&data->postView);
         }
     }
+
+    post_view_input(&data->postView, deltaTime);
 }
 
 void timeline_free(TimelinePage* data) {
