@@ -23,8 +23,6 @@ typedef struct {
     Feed feed;
 
     Thread loadingThreadHandle;
-    Thread postsLoadingThreadHnd;
-
 } ProfilePage;
 
 void profile_page_load(ProfilePage* data, const char* handle, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon);
