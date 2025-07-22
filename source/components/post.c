@@ -5,8 +5,16 @@
 #include "defines.h"
 #include "theming.h"
 
-void post_init(Post* post, void *feedPtr) {
+void post_init(Post* post, void *feedPtr, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
     post->feedPtr = feedPtr;
+    post->repliesIcon = repliesIcon;
+    post->repostIcon = repostIcon;
+    post->likeIcon = likeIcon;
+    post->replyCount = 0;
+    post->repostCount = 0;
+    post->likeCount = 0;
+    post->quoteCount = 0;
+    post->hasEmbed = false;
 
     post->uri = NULL;
     post->createdAt = NULL;
@@ -18,7 +26,23 @@ void post_init(Post* post, void *feedPtr) {
     post->avatarImage = NULL;
 }
 
-void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData), bool disable) {
+void postIconLayout(C2D_Image* icon) {
+    CLAY({
+        .layout = {
+            .sizing = {
+                .width = CLAY_SIZING_FIXED(16),
+                .height = CLAY_SIZING_FIXED(16) 
+            }
+        },
+        .backgroundColor = get_current_theme()->diminishedTextColor,
+        .image = {
+            .imageData = icon,
+        },
+        .aspectRatio = { 16.0f / 16.0f },
+    });
+}
+
+void post_layout(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData), bool disable) {
     CLAY({
         .layout = {
             .padding = CLAY_PADDING_ALL(10),
@@ -42,6 +66,7 @@ void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId
         CLAY({
             .layout = {
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                .childGap = 4
             }
         }) {
             CLAY({
@@ -82,6 +107,20 @@ void post_component(Post* post, void (*onHoverFunction)(Clay_ElementId elementId
                         .fontId = 0
                     })
                 );
+            }
+
+            // Post icon buttons or something
+            CLAY({
+                .layout = {
+                    .sizing = {CLAY_SIZING_FIT(), CLAY_SIZING_FIT()},
+                    .layoutDirection = CLAY_LEFT_TO_RIGHT,
+                    .childAlignment = {.y = CLAY_ALIGN_Y_CENTER},
+                    .childGap = 4
+                },
+            }) {
+                postIconLayout(post->repliesIcon);
+                postIconLayout(post->repostIcon);
+                postIconLayout(post->likeIcon);
             }
         }
     }

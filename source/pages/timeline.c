@@ -20,12 +20,12 @@ void post_open_callback(void* data, Post* post) {
 }
 */
 
-void timeline_init(TimelinePage* data) {
+void timeline_init(TimelinePage* data, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
     if (data == NULL) return;
 
     data->initialized = false,
     post_view_init(&data->postView, CLAY_ID("timelinePostViewHeader"), CLAY_ID("timelinePostViewContainer"));
-    feed_init(&data->feed, FEED_TYPE_TIMELINE, &data->postView);
+    feed_init(&data->feed, FEED_TYPE_TIMELINE, &data->postView, repliesIcon, repostIcon, likeIcon);
 
     feed_load(&data->feed);
     data->initialized = true;

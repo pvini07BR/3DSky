@@ -74,10 +74,10 @@ void loadProfileThread(void* args) {
     data->loaded = true;
 }
 
-void profile_page_load(ProfilePage* data, const char* handle) {
+void profile_page_load(ProfilePage* data, const char* handle, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
     if (data == NULL) return;
 
-    feed_init(&data->feed, FEED_TYPE_AUTHOR, NULL);
+    feed_init(&data->feed, FEED_TYPE_AUTHOR, NULL, repliesIcon, repostIcon, likeIcon);
 
     data->handle = handle;
     data->initialized = false;

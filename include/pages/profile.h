@@ -26,8 +26,7 @@ typedef struct {
 
 } ProfilePage;
 
-void profile_page_init(ProfilePage* data);
-void profile_page_load(ProfilePage* data, const char* handle);
+void profile_page_load(ProfilePage* data, const char* handle, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon);
 void profile_page_layout(ProfilePage* data, float deltaTime);
 void profile_page_free(ProfilePage* data);
 

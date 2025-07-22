@@ -11,7 +11,7 @@ typedef struct {
     PostView postView;
 } TimelinePage;
 
-void timeline_init(TimelinePage* data);
+void timeline_init(TimelinePage* data, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon);
 void timeline_update(TimelinePage* data, float deltaTime);
 void timeline_page_layout(TimelinePage* data, float deltaTime);
 void timeline_free(TimelinePage* data);

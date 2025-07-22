@@ -222,10 +222,10 @@ void post_loading_thread(void* args) {
     feed->loaded = true;
 }
 
-void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr) {
+void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
     if (feed == NULL) return;
 
-    for (int i = 0; i < 50; i++) post_init(&feed->posts[i], feed);
+    for (int i = 0; i < 50; i++) post_init(&feed->posts[i], feed, repliesIcon, repostIcon, likeIcon);
 
     feed->pagOpts = (bs_client_pagination_opts){
         .cursor = NULL,
@@ -296,7 +296,7 @@ void feed_layout(Feed* data, float top_padding) {
         if (data->loaded) {
             for (int i = 0; i < 50; i++) {
                 if (data->posts[i].postText != NULL) {
-                    post_component(&data->posts[i], onPostHover, data->scrolling);
+                    post_layout(&data->posts[i], onPostHover, data->scrolling);
                 }
             }
             CLAY((Clay_ElementDeclaration){

@@ -1,5 +1,6 @@
 #include <jansson.h>
 #include <citro2d.h>
+#include "c2d/spritesheet.h"
 #include "components/feed.h"
 #include "theming.h"
 #include "thirdparty/bluesky/bluesky.h"
@@ -31,9 +32,14 @@ Pages currentPage = HOME;
 bool disableNavButtons = true;
 
 C2D_SpriteSheet navBarIconsSheet = NULL;
+C2D_SpriteSheet postIconsSheet = NULL;
 
 const unsigned int navIconsCount = 2;
 C2D_Image navIcons[2];
+
+C2D_Image repliesIcon;
+C2D_Image repostIcon;
+C2D_Image likeIcon;
 
 Clay_LayoutConfig iconLayout = {
     .sizing = {
@@ -73,7 +79,7 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
             }
 
             if (!timelineData.initialized)
-                timeline_init(&timelineData);
+                timeline_init(&timelineData, &repliesIcon, &repostIcon, &likeIcon);
             break;
         case PROFILE:
             profileData.feed.setScroll = true;
@@ -85,7 +91,7 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
             }
 
             if (!profileData.initialized)
-                profile_page_load(&profileData, bs_client_get_current_handle());
+                profile_page_load(&profileData, bs_client_get_current_handle(), &repliesIcon, &repostIcon, &likeIcon);
             break;
         default:
             show_popup_message("This has not been implemented yet!", POPUP_TYPE_MESSAGE, NULL);
@@ -97,6 +103,13 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
 // TODO: Add more pages (notifications, chat, profile, etc.)
 static void main_init() {
     navBarIconsSheet = C2D_SpriteSheetLoad("romfs:/navBarIcons.t3x");
+    postIconsSheet = C2D_SpriteSheetLoad("romfs:/postIcons.t3x");
+
+    if (postIconsSheet) {
+        repliesIcon = C2D_SpriteSheetGetImage(postIconsSheet, 0);
+        repostIcon = C2D_SpriteSheetGetImage(postIconsSheet, 1);
+        likeIcon = C2D_SpriteSheetGetImage(postIconsSheet, 2);
+    }
     
     switch (currentPage){
         case HOME:
@@ -104,14 +117,14 @@ static void main_init() {
                 navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 1);
                 navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 2);
             }
-            timeline_init(&timelineData);
+            timeline_init(&timelineData, &repliesIcon, &repostIcon, &likeIcon);
             break;
         case PROFILE:
             if (navBarIconsSheet) {
                 navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 0);
                 navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 3);
             }
-            profile_page_load(&profileData, bs_client_get_current_handle());
+            profile_page_load(&profileData, bs_client_get_current_handle(), &repliesIcon, &repostIcon, &likeIcon);
         default:
             break;
     };
