@@ -30,8 +30,7 @@ Pages currentPage = HOME;
 // current page is being loaded.
 bool disableNavButtons = true;
 
-C2D_SpriteSheet iconsSheet = NULL;
-C2D_SpriteSheet otherIconsSheet = NULL;
+C2D_SpriteSheet navBarIconsSheet = NULL;
 
 const unsigned int navIconsCount = 2;
 C2D_Image navIcons[2];
@@ -68,12 +67,22 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
             timelineData.feed.setScroll = true;
             currentPage = page;
 
+            if (navBarIconsSheet) {
+                navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 1);
+                navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 2);
+            }
+
             if (!timelineData.initialized)
                 timeline_init(&timelineData);
             break;
         case PROFILE:
             profileData.feed.setScroll = true;
             currentPage = page;
+
+            if (navBarIconsSheet) {
+                navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 0);
+                navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 3);
+            }
 
             if (!profileData.initialized)
                 profile_page_load(&profileData, bs_client_get_current_handle());
@@ -87,23 +96,21 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
 
 // TODO: Add more pages (notifications, chat, profile, etc.)
 static void main_init() {
-    iconsSheet = C2D_SpriteSheetLoad("romfs:/icons.t3x");
-    if (iconsSheet) {
-        navIcons[HOME] = C2D_SpriteSheetGetImage(iconsSheet, 0);
-        //navIcons[SEARCH] = C2D_SpriteSheetGetImage(iconsSheet, 1);
-        //navIcons[CHAT] = C2D_SpriteSheetGetImage(iconsSheet, 2);
-        //navIcons[NOTIFICATIONS] = C2D_SpriteSheetGetImage(iconsSheet, 3);
-    }
-
-    otherIconsSheet = C2D_SpriteSheetLoad("romfs:/othericons.t3x");
-    if (otherIconsSheet)
-        navIcons[PROFILE] = C2D_SpriteSheetGetImage(otherIconsSheet, 0);
+    navBarIconsSheet = C2D_SpriteSheetLoad("romfs:/navBarIcons.t3x");
     
     switch (currentPage){
         case HOME:
+            if (navBarIconsSheet) {
+                navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 1);
+                navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 2);
+            }
             timeline_init(&timelineData);
             break;
         case PROFILE:
+            if (navBarIconsSheet) {
+                navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 0);
+                navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 3);
+            }
             profile_page_load(&profileData, bs_client_get_current_handle());
         default:
             break;
@@ -189,12 +196,7 @@ static void main_unload(void) {
     timeline_free(&timelineData);
     profile_page_free(&profileData);
 
-    if (iconsSheet) {
-        C2D_SpriteSheetFree(iconsSheet);
-    }
-    if (otherIconsSheet) {
-        C2D_SpriteSheetFree(otherIconsSheet);
-    }
+    if (navBarIconsSheet) C2D_SpriteSheetFree(navBarIconsSheet);
 }
 
 Scene* get_main_scene(void) {

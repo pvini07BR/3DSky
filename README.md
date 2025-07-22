@@ -71,6 +71,8 @@ make clean
 
 # Credits
 
+Icons used in this project has been taken from [Flaticon](https://www.flaticon.com).
+
 Special thanks to everyone who helped me on the [Nintendo Homebrew Discord Server](https://github.com/nh-server)
 on the #dev channel, to make this project possible.
 
