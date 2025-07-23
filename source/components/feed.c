@@ -203,7 +203,7 @@ void post_loading_thread(void* args) {
 
             s32 prio;
             svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (16 * 1024), prio+1, 1, false);
+            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (16 * 1024), prio+1, -2, false);
         }
     }
 
@@ -243,7 +243,8 @@ void feed_load(Feed* feed) {
     if (feed->avatarThreadHandle) {
         feed->stopAvatarThread = true;
         threadJoin(feed->avatarThreadHandle, U64_MAX);
-        feed->stopAvatarThread = NULL;
+        threadFree(feed->avatarThreadHandle);
+        feed->avatarThreadHandle = NULL;
         printf("Avatar thread finished.\n");
     }
     feed->stopAvatarThread = false;
@@ -252,6 +253,7 @@ void feed_load(Feed* feed) {
     if (feed->loadingThreadHandle) {
         feed->stopLoadingThread = true;
         threadJoin(feed->loadingThreadHandle, U64_MAX);
+        threadFree(feed->loadingThreadHandle);
         feed->loadingThreadHandle = NULL;
         printf("Loading thread finished.\n");
     }
@@ -259,7 +261,7 @@ void feed_load(Feed* feed) {
 
     s32 prio;
     svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), prio, 0, false);
+    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), prio, -2, false);
 }
 
 void feed_layout(Feed* data, float top_padding) {
