@@ -2,9 +2,50 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include "components/feed.h"
 #include "defines.h"
+#include "scenes/main_scene.h"
 #include "string_utils.h"
 #include "theming.h"
+
+bool post_pressed = false;
+bool pfp_pressed = false;
+
+void onPfpHover(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
+    if (userData == 0) return;
+    char* handle = (char*)userData;
+    if (handle == NULL) return;
+
+    post_pressed = false;
+
+    if (!pfp_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
+        pfp_pressed = true;
+    }
+
+    if (pfp_pressed && hidKeysUp() & KEY_TOUCH) {
+        main_scene_change_to_profile(handle);
+        pfp_pressed = false;
+    }
+}
+
+void onPostHover(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
+    if (userData == 0) return;
+    Post* data = (Post*)userData;
+    if (data == NULL) return;
+    Feed* feedPtr = (Feed*)data->feedPtr;
+    if (feedPtr == NULL) return;
+    if (feedPtr->postViewPtr == NULL) return;
+
+    if (!post_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
+        post_pressed = true;
+    }
+
+    if (post_pressed && hidKeysUp() & KEY_TOUCH) {
+        feedPtr->setScroll = true;
+        post_view_set(feedPtr->postViewPtr, data);
+        post_pressed = false;
+    }
+}
 
 void post_init(Post* post, void *feedPtr, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
     post->feedPtr = feedPtr;
@@ -63,7 +104,7 @@ void postIconLayout(C2D_Image* icon, const char* str) {
     }
 }
 
-void post_layout(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData), bool disable) {
+void post_layout(Post* post, bool disable, bool disableProfileLoading) {
     CLAY({
         .layout = {
             .padding = CLAY_PADDING_ALL(10),
@@ -72,7 +113,7 @@ void post_layout(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, C
             .childGap = 4
         }
     }) {
-        if (!disable) Clay_OnHover(onHoverFunction, (intptr_t)post);
+        if (!disable) Clay_OnHover(onPostHover, (intptr_t)post);
 
         CLAY({
             .layout = {
@@ -82,7 +123,9 @@ void post_layout(Post* post, void (*onHoverFunction)(Clay_ElementId elementId, C
                 .imageData = post->avatarImage,
             },
             .aspectRatio = { 32.0f / 32.0f }
-        });
+        }) {
+            if (!disable && !disableProfileLoading) Clay_OnHover(onPfpHover, (intptr_t)post->handle);
+        }
 
         CLAY({
             .layout = {

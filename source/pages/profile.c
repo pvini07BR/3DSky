@@ -1,6 +1,7 @@
 #include "pages/profile.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #include "avatar_img_cache.h"
 #include "components/feed.h"
@@ -16,6 +17,14 @@ void loadProfileThread(void* args) {
     if (args == NULL) return;
     ProfilePage* data = (ProfilePage*)args;
     if (data == NULL) return;
+
+    if (data->handle == NULL || strlen(data->handle) == 0) {
+        fprintf(stderr, "Error: Profile handle is null or empty.\n");
+        return;
+    }
+
+    data->loaded = false;
+    data->feed.loaded = false;
 
     bs_client_response_t* resp = bs_client_profile_get(data->handle);
     if (resp->err_code != 0) {
@@ -76,24 +85,39 @@ void loadProfileThread(void* args) {
     threadExit(0);
 }
 
-void profile_page_load(ProfilePage* data, const char* handle, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
+void profile_page_init(ProfilePage* data, const char* handle, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
     if (data == NULL) return;
-
-    feed_init(&data->feed, FEED_TYPE_AUTHOR, NULL, repliesIcon, repostIcon, likeIcon);
-
-    data->handle = handle;
     data->initialized = false;
 
+    feed_init(&data->feed, FEED_TYPE_AUTHOR, NULL, true, repliesIcon, repostIcon, likeIcon);
+    
     data->avatarImage = NULL;
     data->description = NULL;
     data->followsText = NULL;
-
+    
     data->followersCount = 0;
     data->followsCount = 0;
     data->postsCount = 0;
 
-    data->loadingThreadHandle = threadCreate(loadProfileThread, data, (16 * 1024), 0x3f, -2, true);
+    profile_page_load(data, handle);
     data->initialized = true;
+}
+
+void profile_page_load(ProfilePage* data, const char* handle) {
+    if (data == NULL) return;
+
+    if (data->handle && handle) {
+        if (strcmp(data->handle, handle) == 0) return;
+    }
+
+    if (data->loadingThreadHandle) threadJoin(data->loadingThreadHandle, U64_MAX);
+    feed_stop_threads(&data->feed);
+    if (data->handle) free(data->handle);
+    data->handle = handle ? strdup(handle) : NULL;
+
+    s32 prio;
+    svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
+    data->loadingThreadHandle = threadCreate(loadProfileThread, data, (16 * 1024), prio, -2, true);
 }
 
 void profile_page_layout(ProfilePage *data, float deltaTime) {

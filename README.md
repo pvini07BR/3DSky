@@ -10,10 +10,12 @@ What this Bluesky client is currently able to do:
 
 - ✅ Login
 - ✅ Load timeline posts
-- ✅ Load profile info and posts
+- ✅ Load your own profile info and posts
 - 🟩 View post and its replies **(working on it)**
+- 🟩 View others profiles and posts **(working on it)**
 - ⬜ Interact with posts (like, comment, repost)
 - ⬜ View post embedded image(s)
+- ⬜ View notifications
 - ⬜ Create new posts
 - ⬜ View different feeds
 - ⬜ View post embedded video(s)
@@ -102,6 +104,8 @@ Then you either launch the ``3DSky.3dsx`` file already present on your device, o
 After launching the program, you will encounter a black screen. This is the intended behavior. Now
 go on the "Run and Debug" option in VSCode and click the play button above, with the label "Attach to gdb server".
 The program will automatically run again as normally, but the GDB will be attached.
+
+If you wish to use GDB separately, or want to know more about it, you can follow [this wonderful guide](https://bmaupin.github.io/wiki/other/3ds/3ds-debugging.html) I found.
 
 # Credits
 

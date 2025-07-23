@@ -14,15 +14,6 @@
 
 static Scene main_scene;
 
-typedef enum {
-    HOME = 0,
-    PROFILE = 1,
-    //SEARCH = 1,
-    //CHAT = 2,
-    //NOTIFICATIONS = 3,
-    //PROFILE = 4
-} Pages;
-
 Pages currentPage = HOME;
 
 C2D_SpriteSheet navBarIconsSheet = NULL;
@@ -52,6 +43,50 @@ ProfilePage profileData;
 
 bool nav_button_pressed = false;
 
+void main_scene_change_to_profile(const char* handle) {
+    if (handle == NULL) return;
+
+    profileData.feed.setScroll = true;
+    currentPage = PROFILE;
+
+    if (navBarIconsSheet) {
+        navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 0);
+        navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 3);
+    }
+
+    Clay_Citro2d_ClearTextCacheAndBuffer();
+
+    if (!profileData.initialized)
+        profile_page_init(&profileData, handle, &repliesIcon, &repostIcon, &likeIcon);
+    else
+        profile_page_load(&profileData, handle);
+}
+
+void main_scene_change_page(Pages page) {
+    switch (page) {
+    case HOME:
+        timelineData.feed.setScroll = true;
+        currentPage = page;
+
+        if (navBarIconsSheet) {
+            navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 1);
+            navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 2);
+        }
+
+        Clay_Citro2d_ClearTextCacheAndBuffer();
+
+        if (!timelineData.initialized)
+            timeline_init(&timelineData, &repliesIcon, &repostIcon, &likeIcon);
+        break;
+    case PROFILE:
+        main_scene_change_to_profile(bs_client_get_current_handle());
+        break;
+    default:
+        show_popup_message("This has not been implemented yet!", POPUP_TYPE_MESSAGE, NULL);
+        break;
+    }
+}
+
 void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     Pages page = (Pages)userData;
 
@@ -61,39 +96,7 @@ void handleNavButton(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
 
     if (nav_button_pressed && hidKeysUp() & KEY_TOUCH) {
         nav_button_pressed = false;
-        switch (page) {
-        case HOME:
-            timelineData.feed.setScroll = true;
-            currentPage = page;
-
-            if (navBarIconsSheet) {
-                navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 1);
-                navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 2);
-            }
-
-            Clay_Citro2d_ClearTextCacheAndBuffer();
-
-            if (!timelineData.initialized)
-                timeline_init(&timelineData, &repliesIcon, &repostIcon, &likeIcon);
-            break;
-        case PROFILE:
-            profileData.feed.setScroll = true;
-            currentPage = page;
-
-            if (navBarIconsSheet) {
-                navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 0);
-                navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 3);
-            }
-
-            Clay_Citro2d_ClearTextCacheAndBuffer();
-
-            if (!profileData.initialized)
-                profile_page_load(&profileData, bs_client_get_current_handle(), &repliesIcon, &repostIcon, &likeIcon);
-            break;
-        default:
-            show_popup_message("This has not been implemented yet!", POPUP_TYPE_MESSAGE, NULL);
-            break;
-        }
+        main_scene_change_page(page);
     }
 }
 
@@ -108,23 +111,13 @@ static void main_init() {
         likeIcon = C2D_SpriteSheetGetImage(postIconsSheet, 2);
     }
     
-    switch (currentPage){
-        case HOME:
-            if (navBarIconsSheet) {
-                navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 1);
-                navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 2);
-            }
-            timeline_init(&timelineData, &repliesIcon, &repostIcon, &likeIcon);
-            break;
-        case PROFILE:
-            if (navBarIconsSheet) {
-                navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 0);
-                navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 3);
-            }
-            profile_page_load(&profileData, bs_client_get_current_handle(), &repliesIcon, &repostIcon, &likeIcon);
-        default:
-            break;
-    };
+    if (currentPage != HOME) return;
+
+    if (navBarIconsSheet) {
+        navIcons[HOME] = C2D_SpriteSheetGetImage(navBarIconsSheet, 1);
+        navIcons[PROFILE] = C2D_SpriteSheetGetImage(navBarIconsSheet, 2);
+    }
+    timeline_init(&timelineData, &repliesIcon, &repostIcon, &likeIcon);
 }
 
 static void main_layout(float deltaTime) {

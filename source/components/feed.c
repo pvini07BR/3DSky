@@ -1,6 +1,8 @@
 #include "components/feed.h"
 
 #include "3ds/services/hid.h"
+#include "3ds/svc.h"
+#include "3ds/thread.h"
 #include "avatar_img_cache.h"
 #include "c2d/base.h"
 #include "components/post.h"
@@ -14,26 +16,6 @@
 #include <string.h>
 
 bool load_more_posts_pressed = false;
-bool post_pressed = false;
-
-void onPostHover(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
-    if (userData == 0) return;
-    Post* data = (Post*)userData;
-    if (data == NULL) return;
-    Feed* feedPtr = (Feed*)data->feedPtr;
-    if (feedPtr == NULL) return;
-    if (feedPtr->postViewPtr == NULL) return;
-
-    if (!post_pressed && pointerInfo.state == CLAY_POINTER_DATA_RELEASED) {
-        post_pressed = true;
-    }
-
-    if (post_pressed && hidKeysUp() & KEY_TOUCH) {
-        feedPtr->setScroll = true;
-        post_view_set(feedPtr->postViewPtr, data);
-        post_pressed = false;
-    }
-}
 
 void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     if (userData == 0) { return; }
@@ -67,7 +49,7 @@ void set_json_string_field(json_t* obj, char** field) {
     }
 }
 
-void feed_load_posts(Feed* feed, json_t* root) {
+void feed_parse_posts(Feed* feed, json_t* root) {
     json_t *posts_array = json_object_get(root, "feed");
     if (!json_is_array(posts_array)) { 
         fprintf(stderr, "Error: Feed is not an array.\n");
@@ -159,12 +141,14 @@ void avatar_loading_thread(void* args) {
             }
         }
     }
+
+    threadExit(0);
 }
 
 void post_loading_thread(void* args) {
-    if (args == NULL) return;
+    if (args == NULL) threadExit(-1);
     Feed* feed = (Feed*)args;
-    if (feed == NULL) return;
+    if (feed == NULL) threadExit(-1);
 
     feed->loaded = false;
 
@@ -174,24 +158,24 @@ void post_loading_thread(void* args) {
             response = bs_client_timeline_get(&feed->pagOpts);
         } break;
         case FEED_TYPE_AUTHOR: {
-            if (feed->did == NULL) {
-                fprintf(stderr, "Cannot load the author feed if the did is null. Aborting\n");
+            if (feed->did == NULL || strlen(feed->did) == 0) {
+                fprintf(stderr, "Cannot load the author feed if the did is empty or null. Aborting\n");
                 feed->loaded = true;
-                return;
+                threadExit(-1);
             }
             response = bs_client_author_feed_get(feed->did, &feed->pagOpts);
         } break;
         default: {
             fprintf(stderr, "Unhandled feed type. Aborting\n");
             feed->loaded = true;
-            return;
+            threadExit(-1);
         };
     }
 
     if (response == NULL) {
         fprintf(stderr, "Response is null. Cannot procceed with that. Aborting\n");
         feed->loaded = true;
-        return;
+        threadExit(-1);
     }
     
     if (response->err_code != 0) {
@@ -212,19 +196,23 @@ void post_loading_thread(void* args) {
                 fprintf(stderr, "Error parsing timeline string at line %d: %s\n", error.line, error.text);
             else
                 fprintf(stderr, "Error parsing author posts string at line %d: %s\n", error.line, error.text);
-        } else {            
-            feed_load_posts(feed, root);
+        } else {
+            feed_parse_posts(feed, root);
     
             json_decref(root);
 
-            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
+            s32 prio;
+            svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
+            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (16 * 1024), prio+1, 1, false);
         }
     }
 
     feed->loaded = true;
+
+    threadExit(0);
 }
 
-void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
+void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, bool disableProfileLoading, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
     if (feed == NULL) return;
 
     for (int i = 0; i < 50; i++) post_init(&feed->posts[i], feed, repliesIcon, repostIcon, likeIcon);
@@ -235,6 +223,7 @@ void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, C2D_Image*
     };
     feed->type = feed_type;
     feed->loaded = false,
+    feed->disableProfileLoading = disableProfileLoading;
     feed->postViewPtr = postViewPtr;
     feed->scrollValue = 0.0f;
     feed->prevScroll = 0.0f;
@@ -250,15 +239,27 @@ void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, C2D_Image*
 // This function will create a new thread to load the posts into the feed,
 // and will use the appropriate function depending on what feed type has been set
 void feed_load(Feed* feed) {
+    printf("Waiting for avatar thread to finish...\n");
     if (feed->avatarThreadHandle) {
         feed->stopAvatarThread = true;
         threadJoin(feed->avatarThreadHandle, U64_MAX);
+        feed->stopAvatarThread = NULL;
+        printf("Avatar thread finished.\n");
     }
+    feed->stopAvatarThread = false;
+
+    printf("Waiting for loading thread to finish...\n");
     if (feed->loadingThreadHandle) {
         feed->stopLoadingThread = true;
         threadJoin(feed->loadingThreadHandle, U64_MAX);
+        feed->loadingThreadHandle = NULL;
+        printf("Loading thread finished.\n");
     }
-    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), 0x3f, -2, true);
+    feed->stopLoadingThread = false;
+
+    s32 prio;
+    svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
+    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), prio, 0, false);
 }
 
 void feed_layout(Feed* data, float top_padding) {
@@ -298,7 +299,7 @@ void feed_layout(Feed* data, float top_padding) {
         if (data->loaded) {
             for (int i = 0; i < 50; i++) {
                 if (data->posts[i].postText != NULL) {
-                    post_layout(&data->posts[i], onPostHover, data->scrolling);
+                    post_layout(&data->posts[i], data->scrolling, data->disableProfileLoading);
                 }
             }
             CLAY((Clay_ElementDeclaration){
@@ -340,15 +341,21 @@ void feed_layout(Feed* data, float top_padding) {
     }
 }
 
-void feed_free(Feed *feed) {
+void feed_stop_threads(Feed* feed) {
     if (feed->avatarThreadHandle) {
         feed->stopAvatarThread = true;
         threadJoin(feed->avatarThreadHandle, U64_MAX);
+        threadFree(feed->avatarThreadHandle);
     }
     if (feed->loadingThreadHandle) {
         feed->stopLoadingThread = true;
         threadJoin(feed->loadingThreadHandle, U64_MAX);
+        threadFree(feed->loadingThreadHandle);
     }
+}
+
+void feed_free(Feed *feed) {
+    feed_stop_threads(feed);
 
     for (int i = 0; i < 50; i++) {
         post_free(&feed->posts[i]);
