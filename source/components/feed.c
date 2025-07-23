@@ -234,17 +234,17 @@ void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, bool disab
 // This function will create a new thread to load the posts into the feed,
 // and will use the appropriate function depending on what feed type has been set
 void feed_load(Feed* feed, bool resetCursor) {
+    if (!thread_pool_task_is_done(&feed->loadingThreadHandle)) {
+        feed->stopLoadingThread = true;
+        thread_pool_task_wait(&feed->loadingThreadHandle);
+        feed->stopLoadingThread = false;
+    }
+
     if (resetCursor) {
         if (feed->pagOpts.cursor) {
             free(feed->pagOpts.cursor);
             feed->pagOpts.cursor = NULL;
         }
-    }
-
-    if (!thread_pool_task_is_done(&feed->loadingThreadHandle)) {
-        feed->stopLoadingThread = true;
-        thread_pool_task_wait(&feed->loadingThreadHandle);
-        feed->stopLoadingThread = false;
     }
     thread_pool_add_task(post_loading_thread, feed, &feed->loadingThreadHandle);
 }

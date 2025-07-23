@@ -73,7 +73,6 @@ void thread_pool_worker(void* arg) {
                 task.func(task.arg);
             }
 
-            // Sinaliza que a tarefa terminou
             LightLock_Lock(&pool->queueLock);
             pool->tasks[idx].done = true;
             LightEvent_Signal(&pool->tasks[idx].doneEvent);
