@@ -4,6 +4,7 @@
 #include "components/post.h"
 #include "components/post_view.h"
 #include "thirdparty/bluesky/bluesky.h"
+#include "thread_pool.h"
 
 typedef enum {
     FEED_TYPE_TIMELINE,
@@ -21,8 +22,8 @@ typedef struct {
     float prevScroll;
     bool scrolling;
     bool setScroll;
-    Thread loadingThreadHandle;
-    Thread avatarThreadHandle;
+    ThreadTaskHandle loadingThreadHandle;
+    //ThreadTaskHandle avatarThreadHandle;
     bool stopLoadingThread;
     bool stopAvatarThread;
 

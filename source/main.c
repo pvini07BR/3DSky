@@ -4,6 +4,7 @@
 #include "c3d/renderqueue.h"
 #include "scenes/scene.h"
 #include "theming.h"
+#include "thread_pool.h"
 #include <malloc.h>
 #include <math.h>
 #include <stdio.h>
@@ -84,6 +85,8 @@ int main() {
 
     Clay_Initialize(arena, (Clay_Dimensions) { TOP_WIDTH, TOP_HEIGHT + BOTTOM_HEIGHT }, (Clay_ErrorHandler) { HandleClayErrors });
     Clay_SetMeasureTextFunction(MeasureText, &fonts);
+    
+    thread_pool_init();
 
     avatar_img_cache_init();
 
@@ -169,9 +172,9 @@ int main() {
     }
 
     Scene* current = get_current_scene();
-    if (current != NULL) {
-        current->unload();
-    }
+    if (current != NULL) current->unload();
+
+    thread_pool_free();
 
     avatar_img_cache_free();
 

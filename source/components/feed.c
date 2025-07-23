@@ -1,8 +1,6 @@
 #include "components/feed.h"
 
 #include "3ds/services/hid.h"
-#include "3ds/svc.h"
-#include "3ds/thread.h"
 #include "avatar_img_cache.h"
 #include "c2d/base.h"
 #include "components/post.h"
@@ -11,6 +9,7 @@
 #include "string_utils.h"
 #include "theming.h"
 #include "thirdparty/clay/clay_renderer_citro2d.h"
+#include "thread_pool.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -107,9 +106,9 @@ void feed_parse_posts(Feed* feed, json_t* root) {
 }
 
 void avatar_loading_thread(void* args) {
-    if (args == NULL) threadExit(-1);
+    if (args == NULL) return;
     Feed* feed = (Feed*)args;
-    if (feed == NULL) threadExit(-1);
+    if (feed == NULL) return;
 
     char* uniqueUrls[50] = {0};
     int uniqueCount = 0;
@@ -143,14 +142,12 @@ void avatar_loading_thread(void* args) {
     }
 
     printf("Finished loading avatars.\n");
-
-    threadExit(0);
 }
 
 void post_loading_thread(void* args) {
-    if (args == NULL) threadExit(-1);
+    if (args == NULL) return;
     Feed* feed = (Feed*)args;
-    if (feed == NULL) threadExit(-1);
+    if (feed == NULL) return;
 
     feed->loaded = false;
 
@@ -163,21 +160,21 @@ void post_loading_thread(void* args) {
             if (feed->did == NULL || strlen(feed->did) == 0) {
                 fprintf(stderr, "Cannot load the author feed if the did is empty or null. Aborting\n");
                 feed->loaded = true;
-                threadExit(-1);
+                return;
             }
             response = bs_client_author_feed_get(feed->did, &feed->pagOpts);
         } break;
         default: {
             fprintf(stderr, "Unhandled feed type. Aborting\n");
             feed->loaded = true;
-            threadExit(-1);
+            return;
         };
     }
 
     if (response == NULL) {
         fprintf(stderr, "Response is null. Cannot procceed with that. Aborting\n");
         feed->loaded = true;
-        threadExit(-1);
+        return;
     }
     
     if (response->err_code != 0) {
@@ -202,18 +199,12 @@ void post_loading_thread(void* args) {
             feed_parse_posts(feed, root);
     
             json_decref(root);
-
-            s32 prio;
-            svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (128 * 1024), prio-1, -2, false);
         }
     }
 
     feed->loaded = true;
 
     printf("Finished loading posts.\n");
-
-    threadExit(0);
 }
 
 void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, bool disableProfileLoading, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
@@ -233,8 +224,8 @@ void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, bool disab
     feed->prevScroll = 0.0f;
     feed->scrolling = false;
     feed->setScroll = false;
-    feed->loadingThreadHandle = NULL;
-    feed->avatarThreadHandle = NULL;
+    feed->loadingThreadHandle = (ThreadTaskHandle){0};
+    //feed->avatarThreadHandle = NULL;
     feed->stopLoadingThread = false;
     feed->stopAvatarThread = false;
     feed->did = NULL;
@@ -243,26 +234,6 @@ void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, bool disab
 // This function will create a new thread to load the posts into the feed,
 // and will use the appropriate function depending on what feed type has been set
 void feed_load(Feed* feed, bool resetCursor) {
-    if (feed->avatarThreadHandle) {
-        printf("Waiting for avatar thread to finish...\n");
-        feed->stopAvatarThread = true;
-        threadJoin(feed->avatarThreadHandle, U64_MAX);
-        threadFree(feed->avatarThreadHandle);
-        feed->avatarThreadHandle = NULL;
-        printf("Avatar thread finished.\n");
-    }
-    feed->stopAvatarThread = false;
-
-    if (feed->loadingThreadHandle) {
-        printf("Waiting for loading thread to finish...\n");
-        feed->stopLoadingThread = true;
-        threadJoin(feed->loadingThreadHandle, U64_MAX);
-        threadFree(feed->loadingThreadHandle);
-        feed->loadingThreadHandle = NULL;
-        printf("Loading thread finished.\n");
-    }
-    feed->stopLoadingThread = false;
-
     if (resetCursor) {
         if (feed->pagOpts.cursor) {
             free(feed->pagOpts.cursor);
@@ -270,9 +241,12 @@ void feed_load(Feed* feed, bool resetCursor) {
         }
     }
 
-    s32 prio;
-    svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (128 * 1024), prio-2, -2, false);
+    if (!thread_pool_task_is_done(&feed->loadingThreadHandle)) {
+        feed->stopLoadingThread = true;
+        thread_pool_task_wait(&feed->loadingThreadHandle);
+        feed->stopLoadingThread = false;
+    }
+    thread_pool_add_task(post_loading_thread, feed, &feed->loadingThreadHandle);
 }
 
 void feed_layout(Feed* data, float top_padding) {
@@ -355,15 +329,10 @@ void feed_layout(Feed* data, float top_padding) {
 }
 
 void feed_stop_threads(Feed* feed) {
-    if (feed->avatarThreadHandle) {
-        feed->stopAvatarThread = true;
-        threadJoin(feed->avatarThreadHandle, U64_MAX);
-        threadFree(feed->avatarThreadHandle);
-    }
-    if (feed->loadingThreadHandle) {
+    if (!thread_pool_task_is_done(&feed->loadingThreadHandle)) {
         feed->stopLoadingThread = true;
-        threadJoin(feed->loadingThreadHandle, U64_MAX);
-        threadFree(feed->loadingThreadHandle);
+        thread_pool_task_wait(&feed->loadingThreadHandle);
+        feed->stopLoadingThread = false;
     }
 }
 

@@ -4,6 +4,7 @@
 #include "components/feed.h"
 #include <citro2d.h>
 #include "thirdparty/bluesky/bluesky.h"
+#include "thread_pool.h"
 
 typedef struct {
     char* handle;
@@ -22,7 +23,7 @@ typedef struct {
 
     Feed feed;
 
-    Thread loadingThreadHandle;
+    ThreadTaskHandle loadingThreadHandle;
 } ProfilePage;
 
 void profile_page_init(ProfilePage* data, const char* handle, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon);

@@ -12,6 +12,7 @@
 
 #include "defines.h"
 #include "string_utils.h"
+#include "thread_pool.h"
 
 void loadProfileThread(void* args) {
     if (args == NULL) return;
@@ -81,8 +82,6 @@ void loadProfileThread(void* args) {
     json_decref(root);
 
     data->loaded = true;
-
-    threadExit(0);
 }
 
 void profile_page_init(ProfilePage* data, const char* handle, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon) {
@@ -110,14 +109,17 @@ void profile_page_load(ProfilePage* data, const char* handle) {
         if (strcmp(data->handle, handle) == 0) return;
     }
 
-    if (data->loadingThreadHandle) threadJoin(data->loadingThreadHandle, U64_MAX);
+    printf("Stopping profile info task\n");
+    if (!thread_pool_task_is_done(&data->loadingThreadHandle)) {
+        thread_pool_task_wait(&data->loadingThreadHandle);
+    }
+    printf("Stopping feed threads\n");
     feed_stop_threads(&data->feed);
+
     if (data->handle) free(data->handle);
     data->handle = handle ? strdup(handle) : NULL;
 
-    s32 prio;
-    svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-    data->loadingThreadHandle = threadCreate(loadProfileThread, data, (16 * 1024), prio, -2, true);
+    thread_pool_add_task(loadProfileThread, data, &data->loadingThreadHandle);
 }
 
 void profile_page_layout(ProfilePage *data, float deltaTime) {
@@ -207,7 +209,9 @@ void profile_page_layout(ProfilePage *data, float deltaTime) {
 void profile_page_free(ProfilePage* data) {
     feed_free(&data->feed);
 
-    if (data->loadingThreadHandle) threadJoin(data->loadingThreadHandle, U64_MAX);
+    if (!thread_pool_task_is_done(&data->loadingThreadHandle)) {
+        thread_pool_task_wait(&data->loadingThreadHandle);
+    }
     
     if (data->followsText) free(data->followsText);
     if (data->displayName) free(data->displayName);

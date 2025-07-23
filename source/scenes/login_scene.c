@@ -16,6 +16,7 @@
 
 #include "sys/select.h"
 #include "curl/curl.h"
+#include "thread_pool.h"
 
 static Scene login_scene;
 
@@ -50,8 +51,8 @@ bool disableLogin = false;
 C2D_SpriteSheet logoSpriteSheet;
 C2D_Image logoImage;
 
-Thread loginThreadHnd;
-Thread fileDownloadThreadHnd;
+ThreadTaskHandle loginThreadHnd;
+ThreadTaskHandle fileDownloadThreadHnd;
 
 void on_download_certificate_file_confirm();
 
@@ -110,7 +111,7 @@ void download_cert_file_thread() {
 void on_download_certificate_file_confirm() {
     if (!downloading_cert_file) {
         show_popup_message("Downloading certificate file...", POPUP_TYPE_PROGRESS, NULL);
-        fileDownloadThreadHnd = threadCreate(download_cert_file_thread, 0, (16 * 1024), 0x3f, -2, true);
+        thread_pool_add_task(download_cert_file_thread, NULL, &fileDownloadThreadHnd);
         downloading_cert_file = true;
     }
 }
@@ -140,7 +141,7 @@ void on_login_button_pressed() {
 
     logging_in = true;
     
-    loginThreadHnd = threadCreate(loginThread, 0, (16 * 1024), 0x3f, -2, true);
+    thread_pool_add_task(loginThread, NULL, &loginThreadHnd);
 }
 
 static void login_init(void) {
@@ -219,12 +220,12 @@ static void login_update(float deltaTime) {
 }
 
 static void login_unload(void) {
-    if (fileDownloadThreadHnd && downloading_cert_file) {
-        threadJoin(fileDownloadThreadHnd, U64_MAX);
+    if (!thread_pool_task_is_done(&fileDownloadThreadHnd) && downloading_cert_file) {
+        thread_pool_task_wait(&fileDownloadThreadHnd);
     }
 
-    if (loginThreadHnd && logging_in) {
-        threadJoin(loginThreadHnd, U64_MAX);
+    if (!thread_pool_task_is_done(&loginThreadHnd) && logging_in) {
+        thread_pool_task_wait(&loginThreadHnd);
     }
 
     if (logoSpriteSheet) {
