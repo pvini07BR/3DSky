@@ -27,7 +27,7 @@ void timeline_init(TimelinePage* data, C2D_Image* repliesIcon, C2D_Image* repost
     post_view_init(&data->postView, CLAY_ID("timelinePostViewHeader"), CLAY_ID("timelinePostViewContainer"));
     feed_init(&data->feed, FEED_TYPE_TIMELINE, &data->postView, false, repliesIcon, repostIcon, likeIcon);
 
-    feed_load(&data->feed);
+    feed_load(&data->feed, true);
     data->initialized = true;
 }
 

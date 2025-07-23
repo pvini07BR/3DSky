@@ -31,7 +31,7 @@ typedef struct {
 } Feed;
 
 void feed_init(Feed* feed, FeedType feed_type, PostView* postViewPtr, bool disableProfileLoading, C2D_Image* repliesIcon, C2D_Image* repostIcon, C2D_Image* likeIcon);
-void feed_load(Feed* feed);
+void feed_load(Feed* feed, bool resetCursor);
 void feed_layout(Feed* feed, float top_padding);
 void feed_stop_threads(Feed* feed);
 void feed_free(Feed* feed);

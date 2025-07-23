@@ -28,7 +28,7 @@ typedef enum {
 
 // Change this value to either make the console appear on the top screen,
 // bottom screen or neither.
-const ConsoleMode CONSOLE_MODE = OFF;
+const ConsoleMode CONSOLE_MODE = TOP;
 
 void HandleClayErrors(Clay_ErrorData errorData) {
     fprintf(stderr, "[CLAY ERROR]: %s\n", errorData.errorText.chars);

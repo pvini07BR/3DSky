@@ -28,7 +28,7 @@ void onLoadMorePosts(Clay_ElementId elementId, Clay_PointerData pointerInfo, int
         }
 
         if (load_more_posts_pressed && hidKeysUp() & KEY_TOUCH) {
-            feed_load(data);
+            feed_load(data, false);
             load_more_posts_pressed = false;
         }
     }
@@ -203,7 +203,7 @@ void post_loading_thread(void* args) {
 
             s32 prio;
             svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (16 * 1024), prio+1, -2, false);
+            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (128 * 1024), prio+1, -2, false);
         }
     }
 
@@ -238,9 +238,9 @@ void feed_init(Feed *feed, FeedType feed_type, PostView* postViewPtr, bool disab
 
 // This function will create a new thread to load the posts into the feed,
 // and will use the appropriate function depending on what feed type has been set
-void feed_load(Feed* feed) {
-    printf("Waiting for avatar thread to finish...\n");
+void feed_load(Feed* feed, bool resetCursor) {
     if (feed->avatarThreadHandle) {
+        printf("Waiting for avatar thread to finish...\n");
         feed->stopAvatarThread = true;
         threadJoin(feed->avatarThreadHandle, U64_MAX);
         threadFree(feed->avatarThreadHandle);
@@ -249,8 +249,8 @@ void feed_load(Feed* feed) {
     }
     feed->stopAvatarThread = false;
 
-    printf("Waiting for loading thread to finish...\n");
     if (feed->loadingThreadHandle) {
+        printf("Waiting for loading thread to finish...\n");
         feed->stopLoadingThread = true;
         threadJoin(feed->loadingThreadHandle, U64_MAX);
         threadFree(feed->loadingThreadHandle);
@@ -259,9 +259,16 @@ void feed_load(Feed* feed) {
     }
     feed->stopLoadingThread = false;
 
+    if (resetCursor) {
+        if (feed->pagOpts.cursor) {
+            free(feed->pagOpts.cursor);
+            feed->pagOpts.cursor = NULL;
+        }
+    }
+
     s32 prio;
     svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (16 * 1024), prio, -2, false);
+    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (128 * 1024), prio, -2, false);
 }
 
 void feed_layout(Feed* data, float top_padding) {
