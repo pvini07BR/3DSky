@@ -107,15 +107,15 @@ void feed_parse_posts(Feed* feed, json_t* root) {
 }
 
 void avatar_loading_thread(void* args) {
-    if (args == NULL) return;
+    if (args == NULL) threadExit(-1);
     Feed* feed = (Feed*)args;
-    if (feed == NULL) return;
+    if (feed == NULL) threadExit(-1);
 
     char* uniqueUrls[50] = {0};
     int uniqueCount = 0;
 
     for (int i = 0; i < 50; i++) {
-        if (feed->stopAvatarThread) return;
+        if (feed->stopAvatarThread) break;
         if (feed->posts[i].avatarUrl && feed->posts[i].avatarImage == NULL) {
             int found = 0;
             for (int j = 0; j < uniqueCount; j++) {
@@ -131,7 +131,7 @@ void avatar_loading_thread(void* args) {
     }
 
     for (int i = 0; i < uniqueCount; i++) {
-        if (feed->stopAvatarThread) return;
+        if (feed->stopAvatarThread) break;
         C2D_Image* img = avatar_img_cache_get_or_download_image(uniqueUrls[i], 32, 32);
         if (img) {
             for (int j = 0; j < 50; j++) {
@@ -141,6 +141,8 @@ void avatar_loading_thread(void* args) {
             }
         }
     }
+
+    printf("Finished loading avatars.\n");
 
     threadExit(0);
 }
@@ -203,11 +205,13 @@ void post_loading_thread(void* args) {
 
             s32 prio;
             svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (128 * 1024), prio+1, -2, false);
+            feed->avatarThreadHandle = threadCreate(avatar_loading_thread, feed, (128 * 1024), prio-1, -2, false);
         }
     }
 
     feed->loaded = true;
+
+    printf("Finished loading posts.\n");
 
     threadExit(0);
 }
@@ -268,7 +272,7 @@ void feed_load(Feed* feed, bool resetCursor) {
 
     s32 prio;
     svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (128 * 1024), prio, -2, false);
+    feed->loadingThreadHandle = threadCreate(post_loading_thread, feed, (128 * 1024), prio-2, -2, false);
 }
 
 void feed_layout(Feed* data, float top_padding) {

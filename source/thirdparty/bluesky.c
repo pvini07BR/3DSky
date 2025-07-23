@@ -667,13 +667,14 @@ bs_client_response_t*
 bs_client_author_feed_get(const char *did,
                           const bs_client_pagination_opts *opts)
 {
+    CURL* curl = curl_easy_init();
+    
     bs_client_response_t *response = bs_client_response_new();
     struct curl_slist *chunk = NULL;
 
     chunk = curl_slist_append(chunk, BS_REQ_JSON_HEADER);
     chunk = curl_slist_append(chunk, token_header);
 
-    CURL* curl = curl_easy_init();
 
     char *url = calloc(DEFAULT_URL_SIZE, sizeof(char));
     strcpy(url, GET_AUTHOR_FEED);
