@@ -9,16 +9,27 @@ In order to run this app, you will need a SSL certificate file. But don't worry,
 What this Bluesky client is currently able to do:
 
 ✅ Login
+
 ✅ Load timeline posts
+
 ✅ Load profile info and posts
+
 🟩 View post and its replies **(working on it)**
+
 ⬜ Interact with posts (like, comment, repost)
+
 ⬜ View post embedded image(s)
+
 ⬜ Create new posts
+
 ⬜ View different feeds
+
 ⬜ View post embedded video(s)
+
 ⬜ Search
+
 ⬜ Chat
+
 ⬜ Display emojis
 
 # Known issues
