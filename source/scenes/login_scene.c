@@ -15,6 +15,7 @@
 #include "components/popup.h"
 
 #include "sys/select.h"
+#include <sys/stat.h>
 #include "curl/curl.h"
 #include "thread_pool.h"
 
@@ -80,26 +81,36 @@ void download_cert_file_thread() {
 
     bool errorOcurred = false;
 
-    FILE* pagefile = fopen(CERT_FILE_PATH, "wb");
-    if(pagefile) {
-        curl_easy_setopt(hnd, CURLOPT_WRITEDATA, pagefile);
-        CURLcode ret = curl_easy_perform(hnd);
-        fclose(pagefile);
+    int confDir = mkdir("/config",0755);
+    int sslDir = mkdir("/config/ssl",0755);
 
-        if (ret != CURLE_OK) {
-            char* errorBuffer = formatted_string("Error when downloading cert file: %s", curl_easy_strerror(ret));
-            show_popup_message(errorBuffer, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
-            free(errorBuffer);
+    if((confDir != F_OK && errno != EEXIST) || (sslDir != F_OK && errno != EEXIST)){
+        char* errorBuffer = formatted_string("Error when trying to create cert config folder.");
+        show_popup_message(errorBuffer, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
+        free(errorBuffer);
+        errorOcurred = true;
+    } else {
+        FILE* pagefile = fopen(CERT_FILE_PATH, "wb");
+        if(pagefile) {
+            curl_easy_setopt(hnd, CURLOPT_WRITEDATA, pagefile);
+            CURLcode ret = curl_easy_perform(hnd);
+            fclose(pagefile);
 
-            remove(CERT_FILE_PATH);
+            if (ret != CURLE_OK) {
+                char* errorBuffer = formatted_string("Error when downloading cert file: %s", curl_easy_strerror(ret));
+                show_popup_message(errorBuffer, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
+                free(errorBuffer);
+
+                remove(CERT_FILE_PATH);
+                errorOcurred = true;
+            }
+        } else {
+            char* error_msg = formatted_string("Error when opening file to download: %s", strerror(errno));
+            show_popup_message(error_msg, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
+            free(error_msg);
+
             errorOcurred = true;
         }
-    } else {
-        char* error_msg = formatted_string("Error when opening file to download: %s", strerror(errno));
-        show_popup_message(error_msg, POPUP_TYPE_ERROR, on_download_certificate_file_confirm);
-        free(error_msg);
-
-        errorOcurred = true;
     }
     
     curl_easy_cleanup(hnd);
